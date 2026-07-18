@@ -271,9 +271,7 @@
 
   function run() {
     enhanceMediaPage();
-    enhanceMessagePage();
     enhanceRewardPercent();
-    enhanceMembershipGrid();
   }
 
   let scheduled = false;

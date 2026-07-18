@@ -94,6 +94,11 @@ const mediaItems = Array.from({ length: 9 }, (_, index) => ({
   source: "./assets/treatment-card.png"
 }));
 
+const recipientCustomers = Array.from({ length: 6 }, (_, index) => ({
+  key: `recipient-${index}`,
+  name: "Willi Tilman Claus"
+}));
+
 const state = {
   route: "zuhause",
   metric: "umsatz",
@@ -101,8 +106,13 @@ const state = {
   dirty: false,
   activeRewardStatus: "Aktiv",
   rewardRecipient: "all",
+  rewardRecipientCustomerKeys: new Set(["recipient-0"]),
+  messageRecipient: "all",
+  messageRecipientCustomerKeys: new Set(["recipient-0"]),
+  selectedRewardObject: null,
   activeProductStatus: "Aktiv",
   productCategory: "Behandlung",
+  productImages: [],
   productDiscountEnabled: true,
   productPointsEnabled: true,
   selectedOrderKeys: new Set(),
@@ -169,7 +179,8 @@ function routeFromHash() {
 }
 
 function navigate(route) {
-  if (!APP_ROUTES.has(route)) state.appNavOpen = false;
+  if (route === "auszahlungen") state.appNavOpen = true;
+  else if (!APP_ROUTES.has(route)) state.appNavOpen = false;
   window.location.hash = route;
 }
 
@@ -185,7 +196,11 @@ function updateNavigation() {
 }
 
 function render() {
-  state.route = routeFromHash();
+  const nextRoute = routeFromHash();
+  if (nextRoute === "auszahlungen" && state.route !== nextRoute) {
+    state.appNavOpen = true;
+  }
+  state.route = nextRoute;
   if (state.route !== "medien") {
     state.selectedMediaKeys.clear();
   }
@@ -512,7 +527,65 @@ function renderRewards() {
           </tbody>
         </table>
       </div>
+      <nav class="figma-pagination rewards-pagination" aria-label="Belohnungen Seiten">
+        <button type="button" aria-label="Vorherige Seite"><i data-lucide="chevron-left"></i></button>
+        <span class="is-active">1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>...</span><span>47</span>
+        <button type="button" aria-label="Nächste Seite"><i data-lucide="chevron-right"></i></button>
+      </nav>
     </section>
+  `;
+}
+
+function renderRewardProductSelection() {
+  if (!state.selectedRewardObject) {
+    return `
+      <button class="button subtle compact reward-object-button" type="button" data-open-object-picker>
+        <span data-object-selection-label>Auswählen</span><i data-lucide="database"></i>
+      </button>
+    `;
+  }
+
+  return `
+    <div class="reward-selected-object">
+      <img src="${state.selectedRewardObject.image}" alt="" />
+      <span>${escapeHtml(state.selectedRewardObject.name)}</span>
+      <button type="button" data-clear-reward-object aria-label="${escapeHtml(state.selectedRewardObject.name)} entfernen"><i data-lucide="x"></i></button>
+    </div>
+  `;
+}
+
+function recipientCustomerKeys(scope) {
+  return scope === "message"
+    ? state.messageRecipientCustomerKeys
+    : state.rewardRecipientCustomerKeys;
+}
+
+function renderRecipientControls(scope, mode) {
+  const selectedKeys = recipientCustomerKeys(scope);
+  return `
+    <div class="recipient-toggle" role="group" aria-label="Empfänger auswählen">
+      <button class="${mode === "all" ? "is-active" : ""}" type="button" data-recipient-mode="all" data-recipient-scope="${scope}" aria-pressed="${mode === "all"}">Alle Kunden</button>
+      <button class="${mode === "selected" ? "is-active" : ""}" type="button" data-recipient-mode="selected" data-recipient-scope="${scope}" aria-pressed="${mode === "selected"}">Bestimmte Kunden</button>
+    </div>
+    ${mode === "selected" ? `
+      <div class="recipient-customer-panel" data-recipient-panel="${scope}">
+        <span class="recipient-selection-count" data-recipient-count>${selectedKeys.size} ausgewählt</span>
+        <div class="recipient-customer-list">
+          <div class="recipient-search-row">
+            <label class="recipient-search"><i data-lucide="search"></i><input type="search" data-recipient-search="${scope}" placeholder="Kunden suchen" autocomplete="off" /></label>
+          </div>
+          ${recipientCustomers.map((customer) => {
+            const checked = selectedKeys.has(customer.key);
+            return `
+              <label class="recipient-customer-row ${checked ? "is-selected" : ""}" data-recipient-row data-recipient-name="${customer.name.toLocaleLowerCase("de")}">
+                <input type="checkbox" data-recipient-customer="${customer.key}" data-recipient-scope="${scope}" ${checked ? "checked" : ""} />
+                <span>${escapeHtml(customer.name)}</span>
+              </label>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    ` : ""}
   `;
 }
 
@@ -539,11 +612,10 @@ function renderRewardEditor() {
       ${editorToolbar("Titel", state.activeRewardStatus, "belohnungen")}
       <form class="editor-grid reward-editor-grid" data-editor-form>
         <div class="editor-stack">
-          <section class="editor-card reward-basic-card">
-            <div class="field"><label for="rewardTitle">Titel</label><input id="rewardTitle" type="text" placeholder="Titel hinzufügen..." /></div>
-            <div class="reward-product-row">
-              <span class="field-label">Behandlung/Produkt auswählen</span>
-              <button class="button subtle compact" type="button" data-open-object-picker><span data-object-selection-label>Auswählen</span><i data-lucide="database"></i></button>
+          <section class="editor-card reward-basic-card ${state.selectedRewardObject ? "has-selected-object" : ""}">
+            <div class="reward-product-row ${state.selectedRewardObject ? "has-selected-object" : ""}">
+              <span class="field-label">Behandlung/Produkt</span>
+              ${renderRewardProductSelection()}
             </div>
             <div class="reward-discount-row">
               <label for="rewardDiscount">Rabatt wählen</label>
@@ -564,12 +636,9 @@ function renderRewardEditor() {
               <select id="rewardRepeat"><option>Einmalig</option><option>Jährlich</option><option>Monatlich</option><option>Wöchentlich</option><option>Halbjährlich</option></select>
             </div>
           </section>
-          <section class="editor-card reward-recipient-card">
+          <section class="editor-card reward-recipient-card ${state.rewardRecipient === "selected" ? "is-selected" : ""}">
             <h2>Empfänger</h2>
-            <div class="recipient-toggle" role="group" aria-label="Empfänger auswählen">
-              <button class="${state.rewardRecipient === "all" ? "is-active" : ""}" type="button" data-reward-recipient="all" aria-pressed="${state.rewardRecipient === "all"}">Alle Kunden</button>
-              <button class="${state.rewardRecipient === "selected" ? "is-active" : ""}" type="button" data-reward-recipient="selected" aria-pressed="${state.rewardRecipient === "selected"}">Bestimmte Kunden</button>
-            </div>
+            ${renderRecipientControls("reward", state.rewardRecipient)}
           </section>
         </div>
         <div class="editor-stack">
@@ -662,6 +731,18 @@ function renderProductPricingFields() {
   `;
 }
 
+function renderProductMediaPicker() {
+  const mediaLimit = state.productCategory === "Paket" ? 3 : 1;
+  const coverImage = state.productImages[0]?.source || "";
+  const imageStyle = coverImage ? ` style="background-image:url('${escapeHtml(coverImage)}')"` : "";
+  return `
+    <button class="media-picker product-media-picker ${coverImage ? "has-image" : ""}" type="button" data-open-media data-media-context="product" data-media-limit="${mediaLimit}"${imageStyle}>
+      <i data-lucide="image-plus"></i>
+      ${state.productImages.length > 1 ? `<span class="media-picker-image-count">${state.productImages.length}</span>` : ""}
+    </button>
+  `;
+}
+
 function renderProductEditor() {
   return `
     <section class="page product-editor-page">
@@ -681,7 +762,7 @@ function renderProductEditor() {
             <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
             <div class="field">
               <label>Bild</label>
-              <button class="media-picker" type="button" data-open-media><i data-lucide="image-plus"></i></button>
+              ${renderProductMediaPicker()}
             </div>
             <div id="packageFields" ${state.productCategory === "Paket" ? "" : "hidden"}>
               <div class="field package-fields-label"><label>Enthaltene Behandlungen/Produkte</label></div>
@@ -868,12 +949,16 @@ function renderCommunicationEditor(kind) {
         <h2 class="section-title">${kind}</h2>
         <button class="button primary compact communication-publish" id="editorSave" type="button" disabled>${kind} veröffentlichen<i data-lucide="circle-plus"></i></button>
       </div>
-      <form class="editor-card communication-editor-card" data-editor-form>
+      <form class="editor-card communication-editor-card ${isMessage && state.messageRecipient === "selected" ? "has-selected-recipients" : ""}" data-editor-form>
         <div class="communication-field communication-title-field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
         <div class="communication-field communication-description-field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
         <div class="communication-field communication-image-field"><label>Bild</label><button class="media-picker" type="button" data-open-media><i data-lucide="image-plus"></i></button></div>
         ${isMessage ? `
           <div class="communication-field communication-selection-field"><label>Behandlung/Produkt auswählen (optional)</label><button class="button subtle compact" type="button" data-open-object-picker><span data-object-selection-label>Auswählen</span><i data-lucide="database"></i></button></div>
+          <div class="communication-recipient-field ${state.messageRecipient === "selected" ? "is-selected" : ""}">
+            <label>Empfänger</label>
+            ${renderRecipientControls("message", state.messageRecipient)}
+          </div>
         ` : ""}
       </form>
     </section>
@@ -884,7 +969,9 @@ function renderMedia() {
   const visibleMediaItems = mediaItems
     .map((item, index) => ({ item, key: `media-${index}` }))
     .filter(({ key }) => !state.deletedMediaKeys.has(key));
-  state.selectedMediaKeys.clear();
+  [...state.selectedMediaKeys].forEach((key) => {
+    if (!visibleMediaItems.some((entry) => entry.key === key)) state.selectedMediaKeys.delete(key);
+  });
 
   return `
     <section class="page media-page">
@@ -905,7 +992,7 @@ function renderMedia() {
           <tbody>
             ${visibleMediaItems.map(({ item, key }) => `
               <tr>
-                ${checkboxCell(`data-media-select="${key}"`)}
+                ${checkboxCell(`data-media-select="${key}" ${state.selectedMediaKeys.has(key) ? "checked" : ""}`)}
                 <td class="media-thumb-cell"><img src="${item.source || "./assets/treatment-card.png"}" alt="" /></td>
                 <td class="media-filename"><span>${item.file}</span><small>${item.type}</small></td>
                 <td>${item.date}</td><td>${item.size}</td><td>${item.reference}</td>
@@ -993,25 +1080,41 @@ function renderSettings() {
 
 function renderPayouts() {
   return `
-    <section class="page">
-      ${pageHeader("Auszahlungen")}
-      <div class="payout-summary">
-        <article class="payout-card"><strong>18.420,00€</strong><span>Ausgezahlt seit Start</span></article>
-        <article class="payout-card"><strong>1.580,00€</strong><span>Nächste Auszahlung</span></article>
-        <article class="payout-card"><strong>15.07.2026</strong><span>Voraussichtliches Datum</span></article>
-      </div>
-      <div class="table-shell table-scroll">
-        <table class="data-table">
-          <colgroup><col style="width:170px" /><col style="width:170px" /><col style="width:170px" /><col style="width:170px" /></colgroup>
-          <thead><tr><th>Auszahlung</th><th>Zeitraum</th><th>Betrag</th><th>Status</th></tr></thead>
-          <tbody>
-            ${[
-              ["#PAY-1032", "01.06.–30.06.2026", "2.460,00€", "Ausgezahlt"],
-              ["#PAY-1031", "01.05.–31.05.2026", "2.190,00€", "Ausgezahlt"],
-              ["#PAY-1030", "01.04.–30.04.2026", "2.040,00€", "Ausgezahlt"]
-            ].map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}
-          </tbody>
-        </table>
+    <section class="page payouts-page">
+      <div class="payout-content">
+        ${pageHeader("Auszahlungen")}
+        <div class="payout-panel">
+          <div class="payout-summary">
+            <article class="payout-card"><strong>842,50€</strong><span>Verfügbar</span></article>
+            <article class="payout-card"><strong>217,00€</strong><span>Ausstehend</span></article>
+            <article class="payout-card"><strong>20.07.2026</strong><span>Nächste Auszahlung</span></article>
+            <article class="payout-card"><strong>12.180,00€</strong><span>Insgesamt erhalten</span></article>
+          </div>
+          <section class="payout-bank-card" aria-label="Bankverbindung">
+            <div class="payout-bank-meta">
+              <i data-lucide="landmark"></i>
+              <span><strong>Sparkasse Erlangen ...4821</strong><small>Auszahlung wöchentlich, automatisch</small></span>
+            </div>
+            <button type="button" disabled>Bankverbindung ändern</button>
+          </section>
+          <div class="payout-history" aria-label="Auszahlungshistorie">
+            <table>
+              <colgroup><col /><col /><col /></colgroup>
+              <thead><tr><th>Datum</th><th>Betrag</th><th>Status</th></tr></thead>
+              <tbody>
+                ${[
+                  ["23.07.2026", "702,00€", "Unterwegs"],
+                  ["16.07.2026", "702,00€", "Unterwegs"],
+                  ["09.07.2026", "702,00€", "Bezahlt"],
+                  ["03.07.2026", "702,00€", "Bezahlt"],
+                  ["16.06.2026", "702,00€", "Bezahlt"]
+                ].map(([date, amount, status]) => `
+                  <tr><td>${date}</td><td>${amount}</td><td><span>${status}</span><button type="button">Details</button></td></tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
   `;
@@ -1231,8 +1334,8 @@ function openMediaDeleteConfirmation(trigger) {
     .map((checkbox) => checkbox.dataset.mediaSelect);
   if (selectedMediaKeys.length === 0) return;
   const rect = trigger.getBoundingClientRect();
-  const left = Math.min(window.innerWidth - 195, Math.max(20, rect.left + 96));
-  const top = Math.max(20, rect.top - 94);
+  const left = Math.min(window.innerWidth - 195, Math.max(20, rect.left + 99));
+  const top = Math.max(20, rect.top - 104);
 
   openModal(`
     <div class="media-delete-dialog">
@@ -1418,8 +1521,13 @@ function openMediaPicker(trigger = null) {
     type: "PNG",
     source: "./assets/treatment-card@2x.png"
   }));
-  const maxSelectedMedia = 3;
-  let selectedMedia = [];
+  const requestedMediaLimit = Number.parseInt(trigger?.dataset.mediaLimit || "3", 10);
+  const maxSelectedMedia = Number.isInteger(requestedMediaLimit) && requestedMediaLimit > 0 ? requestedMediaLimit : 3;
+  const isProductMediaPicker = trigger?.dataset.mediaContext === "product";
+  let selectedMedia = isProductMediaPicker
+    ? state.productImages.slice(0, maxSelectedMedia).map((item) => ({ ...item }))
+    : [];
+  const mediaNoun = maxSelectedMedia === 1 ? "Bild" : "Bilder";
 
   openModal(`
     <div class="media-library-dialog">
@@ -1429,10 +1537,10 @@ function openMediaPicker(trigger = null) {
       </div>
       <div class="media-library-toolbar">
         <div class="media-library-search"><i data-lucide="search"></i><input type="search" data-media-search placeholder="Dateiname suchen" autocomplete="off" aria-label="Dateiname suchen" /></div>
-        <div class="media-library-actions"><span class="media-library-count" data-media-count hidden>0/3 Bilder</span><button class="media-library-add" type="button" data-media-confirm disabled>Hinzufügen<i data-lucide="plus-square"></i></button></div>
+        <div class="media-library-actions"><span class="media-library-count" data-media-count hidden>0/${maxSelectedMedia} ${mediaNoun}</span><button class="media-library-add" type="button" data-media-confirm disabled>Hinzufügen<i data-lucide="plus-square"></i></button></div>
       </div>
       <div class="media-upload-zone" data-media-drop-zone>
-        <input class="visually-hidden" id="mediaLibraryUpload" type="file" accept="image/*" multiple />
+        <input class="visually-hidden" id="mediaLibraryUpload" type="file" accept="image/*" ${maxSelectedMedia > 1 ? "multiple" : ""} />
         <div class="media-upload-empty" data-media-empty>
           <label class="media-upload-button" for="mediaLibraryUpload">Bild hinzufügen<i data-lucide="plus-square"></i></label>
           <span>Oder Bilder per Drag &amp; Drop ablegen</span>
@@ -1468,7 +1576,7 @@ function openMediaPicker(trigger = null) {
     dropZone.classList.toggle("has-selection", hasSelection);
     confirm.disabled = !hasSelection;
     count.hidden = !hasSelection;
-    count.textContent = `${selectedMedia.length}/${maxSelectedMedia} Bilder`;
+    count.textContent = `${selectedMedia.length}/${maxSelectedMedia} ${mediaNoun}`;
     emptyState.hidden = hasSelection;
     selectionState.hidden = !hasSelection;
     selectionState.innerHTML = selectedMedia.map((item, index) => `
@@ -1544,6 +1652,14 @@ function openMediaPicker(trigger = null) {
   confirm.addEventListener("click", () => {
     if (!selectedMedia.length) return;
     const selectedSource = selectedMedia[0].source;
+    if (isProductMediaPicker) {
+      state.productImages = selectedMedia.slice(0, maxSelectedMedia).map((item) => ({ ...item }));
+      markDirty();
+      closeModal();
+      render();
+      showToast(selectedMedia.length === 1 ? "Bild ausgewählt" : `${selectedMedia.length} Bilder ausgewählt`);
+      return;
+    }
     if (trigger?.classList.contains("media-add")) {
       const now = new Intl.DateTimeFormat("de-DE", {
         day: "2-digit",
@@ -1582,6 +1698,8 @@ function openMediaPicker(trigger = null) {
     closeModal();
     showToast(selectedMedia.length === 1 ? "Bild ausgewählt" : `${selectedMedia.length} Bilder ausgewählt`);
   });
+
+  renderSelection();
 }
 
 function openObjectPicker(trigger = null) {
@@ -1625,6 +1743,19 @@ function openObjectPicker(trigger = null) {
   modal.querySelectorAll(".object-picker-item").forEach((item) => {
     item.addEventListener("click", () => {
       if (trigger) {
+        const isRewardProductSelection = Boolean(trigger.closest(".reward-product-row"));
+        if (isRewardProductSelection) {
+          state.selectedRewardObject = {
+            name: item.dataset.objectName,
+            image: "./assets/treatment-card@2x.png"
+          };
+          markDirty();
+          closeModal();
+          render();
+          showToast(`${item.dataset.objectName} ausgewählt`);
+          return;
+        }
+
         trigger.dataset.selectedObject = item.dataset.objectName;
         const productField = trigger.closest(".membership-products-field");
         const productList = productField?.querySelector(".list-editor-items");
@@ -1841,6 +1972,10 @@ function bindPageEvents() {
   if (mediaSelectionInputs.length && mediaSelectAll && mediaTableShell && mediaSelectionActions) {
     const updateMediaSelection = () => {
       const selectedCount = mediaSelectionInputs.filter((checkbox) => checkbox.checked).length;
+      state.selectedMediaKeys.clear();
+      mediaSelectionInputs.forEach((checkbox) => {
+        if (checkbox.checked) state.selectedMediaKeys.add(checkbox.dataset.mediaSelect);
+      });
       mediaSelectionActions.hidden = selectedCount === 0;
       mediaTableShell.classList.toggle("is-selecting", selectedCount > 0);
       mediaSelectAll.checked = selectedCount === mediaSelectionInputs.length;
@@ -1872,15 +2007,39 @@ function bindPageEvents() {
     editorForm.addEventListener("change", markDirty);
   }
 
-  document.querySelectorAll("[data-reward-recipient]").forEach((button) => {
+  document.querySelectorAll("[data-recipient-mode]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.rewardRecipient = button.dataset.rewardRecipient;
-      document.querySelectorAll("[data-reward-recipient]").forEach((option) => {
-        const isActive = option === button;
-        option.classList.toggle("is-active", isActive);
-        option.setAttribute("aria-pressed", String(isActive));
-      });
+      const scope = button.dataset.recipientScope;
+      const mode = button.dataset.recipientMode;
+      if (scope === "message") state.messageRecipient = mode;
+      else state.rewardRecipient = mode;
+      const selectedKeys = recipientCustomerKeys(scope);
+      if (mode === "selected" && selectedKeys.size === 0) selectedKeys.add(recipientCustomers[0].key);
       markDirty();
+      render();
+    });
+  });
+
+  document.querySelectorAll("[data-recipient-customer]").forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      const scope = checkbox.dataset.recipientScope;
+      const selectedKeys = recipientCustomerKeys(scope);
+      if (checkbox.checked) selectedKeys.add(checkbox.dataset.recipientCustomer);
+      else selectedKeys.delete(checkbox.dataset.recipientCustomer);
+      checkbox.closest("[data-recipient-row]")?.classList.toggle("is-selected", checkbox.checked);
+      const panel = checkbox.closest("[data-recipient-panel]");
+      const count = panel?.querySelector("[data-recipient-count]");
+      if (count) count.textContent = `${selectedKeys.size} ausgewählt`;
+      markDirty();
+    });
+  });
+
+  document.querySelectorAll("[data-recipient-search]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const query = input.value.trim().toLocaleLowerCase("de");
+      input.closest("[data-recipient-panel]")?.querySelectorAll("[data-recipient-row]").forEach((row) => {
+        row.hidden = query.length > 0 && !row.dataset.recipientName.includes(query);
+      });
     });
   });
 
@@ -1912,6 +2071,13 @@ function bindPageEvents() {
   document.querySelectorAll("[data-open-object-picker]").forEach((button) => {
     button.addEventListener("click", () => openObjectPicker(button));
   });
+  document.querySelectorAll("[data-clear-reward-object]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.selectedRewardObject = null;
+      markDirty();
+      render();
+    });
+  });
   document.querySelectorAll(".list-editor-item > button").forEach((button) => {
     button.addEventListener("click", () => {
       button.closest(".list-editor-item")?.remove();
@@ -1931,8 +2097,11 @@ function bindPageEvents() {
   if (productCategory) {
     productCategory.addEventListener("change", () => {
       state.productCategory = productCategory.value;
+      const reducedToSingleImage = state.productCategory !== "Paket" && state.productImages.length > 1;
+      if (reducedToSingleImage) state.productImages = state.productImages.slice(0, 1);
       markDirty();
       render();
+      if (reducedToSingleImage) showToast("Für diese Kategorie ist nur ein Bild möglich");
     });
   }
 
