@@ -9,3 +9,4 @@ current-*.png
 figma-api/
 figma-export/
 time-log.md
+.cache/

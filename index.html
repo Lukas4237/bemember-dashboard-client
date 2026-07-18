@@ -3,420 +3,78 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1546b9" />
     <title>BeMember Dashboard</title>
-    <link rel="stylesheet" href="./styles.css?v=20260618-1" />
-  </head>
+    <link rel="stylesheet" href="./styles.css?v=20260717-media-selection-fix" />
+  <link rel="stylesheet" href="dashboard-final-fixes.css?v=20260717-media-selection-fix">
+</head>
   <body>
-    <div class="stage-shell">
-    <div class="app-shell">
-      <aside class="sidebar" aria-label="Hauptnavigation">
+    <div class="dashboard-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Hauptnavigation">
         <a class="brand" href="#zuhause" aria-label="BeMember Zuhause">
-          <img src="./assets/bemember-logo.svg?v=20260618-1" alt="BeMember" />
+          <span class="brand-wordmark" aria-hidden="true">
+            <span class="brand-rings"></span>
+            <span class="brand-name">BeMember</span>
+          </span>
         </a>
 
-        <nav class="nav-list">
-          <button class="nav-item is-active" type="button" data-route="zuhause">
-            <span class="nav-icon" data-icon="home"></span>
-            <span>Zuhause</span>
-            <span class="nav-arrow" data-icon="chevron"></span>
-          </button>
-          <button class="nav-item" type="button" data-route="kunden">
-            <span class="nav-icon" data-icon="user"></span>
-            <span>Kunden</span>
-            <span class="nav-arrow" data-icon="chevron"></span>
+        <nav class="primary-nav" aria-label="Bereiche">
+          <button class="nav-item" type="button" data-route="zuhause">
+            <i data-lucide="house"></i><span>Zuhause</span><i class="nav-chevron" data-lucide="chevron-right"></i>
           </button>
           <button class="nav-item" type="button" data-route="bestellungen">
-            <span class="nav-icon" data-icon="bag"></span>
-            <span>Bestellungen &amp; Aufträge</span>
-            <span class="nav-arrow" data-icon="chevron"></span>
+            <i data-lucide="shopping-bag"></i><span>Bestellungen</span><i class="nav-chevron" data-lucide="chevron-right"></i>
           </button>
-          <button class="nav-item" type="button" data-route="mitgliedschaften">
-            <span class="nav-icon" data-icon="sync"></span>
-            <span>Mitgliedschaften</span>
-            <span class="nav-arrow" data-icon="chevron"></span>
+          <button class="nav-item" type="button" data-route="kunden">
+            <i data-lucide="user-round"></i><span>Kunden</span><i class="nav-chevron" data-lucide="chevron-right"></i>
           </button>
-          <button class="nav-item" type="button" data-route="app">
-            <span class="nav-icon" data-icon="edit"></span>
-            <span>App Einstellungen</span>
-            <span class="nav-arrow" data-icon="chevron"></span>
+          <button class="nav-item nav-parent" id="appNavToggle" type="button" aria-expanded="true">
+            <i data-lucide="smartphone"></i><span>App</span><i class="nav-chevron" data-lucide="chevron-down"></i>
           </button>
+          <div class="subnav" id="appSubnav">
+            <button type="button" data-route="belohnungen">Belohnungen<i data-lucide="chevron-right"></i></button>
+            <button type="button" data-route="produkte">Behandlungen/Produkte<i data-lucide="chevron-right"></i></button>
+            <button type="button" data-route="mitgliedschaft">Mitgliedschaft<i data-lucide="chevron-right"></i></button>
+            <button type="button" data-route="kommunikation">Neuigkeiten/Nachrichten<i data-lucide="chevron-right"></i></button>
+            <button type="button" data-route="medien">Medien<i data-lucide="chevron-right"></i></button>
+            <button type="button" data-route="einstellungen">Einstellungen<i data-lucide="chevron-right"></i></button>
+          </div>
           <button class="nav-item" type="button" data-route="auszahlungen">
-            <span class="nav-icon" data-icon="bank"></span>
-            <span>Auszahlungen</span>
-            <span class="nav-arrow" data-icon="chevron"></span>
+            <i data-lucide="credit-card"></i><span>Auszahlungen</span><i class="nav-chevron" data-lucide="chevron-right"></i>
           </button>
         </nav>
-
-        <div class="support-card">
-          <div class="support-title">
-            <span class="nav-icon" data-icon="support"></span>
-            <span>Support</span>
-          </div>
-          <p>Du brauchst Unterstützung oder hast Fragen? Schreibe uns gerne eine Mail an support@bemember.app</p>
-        </div>
       </aside>
 
-      <main class="main-area">
+      <div class="workspace">
         <header class="topbar">
-          <h1 id="pageTitle">Hallo Anna!</h1>
-          <div class="topbar-actions">
-            <button class="profile-button" id="profileButton" type="button">
-              <span>Anna Meyer</span>
-              <span class="avatar" aria-hidden="true">
-                <span class="nav-icon" data-icon="user"></span>
-              </span>
-            </button>
-            <button class="primary-button" id="redeemButton" type="button">Transaktion einlösen →</button>
-          </div>
+          <button class="icon-button mobile-menu" id="mobileMenu" type="button" aria-label="Navigation öffnen">
+            <i data-lucide="menu"></i>
+          </button>
+          <label class="global-search">
+            <i data-lucide="search"></i>
+            <input id="globalSearch" type="search" placeholder="Suchen" autocomplete="off" />
+          </label>
+          <button class="profile-button" id="profileButton" type="button" aria-haspopup="dialog">
+            <span>Anna Meyer</span>
+            <span class="profile-avatar"><i data-lucide="user-round"></i></span>
+          </button>
         </header>
 
-        <section class="view is-visible" id="view-zuhause" data-view="zuhause" aria-labelledby="pageTitle">
-          <div class="dashboard-grid">
-            <div class="metric-stack">
-              <article class="metric-card">
-                <div>
-                  <strong>157</strong>
-                  <span>Aktive Kunden</span>
-                </div>
-                <span class="metric-icon" data-icon="user"></span>
-              </article>
-              <article class="metric-card">
-                <div>
-                  <strong>83</strong>
-                  <span>Empfehlungen im Zeitverlauf</span>
-                </div>
-                <span class="metric-icon" data-icon="user-plus"></span>
-              </article>
-              <article class="metric-card">
-                <div>
-                  <strong>45</strong>
-                  <span>Google Bewertungen</span>
-                </div>
-                <span class="metric-icon" data-icon="star"></span>
-              </article>
-            </div>
-
-            <div class="home-side">
-              <article class="metric-card compact">
-                <div>
-                  <strong>36</strong>
-                  <span>Aktive Abonnements</span>
-                </div>
-                <span class="metric-icon" data-icon="sync"></span>
-              </article>
-
-              <article class="panel live-panel">
-                <div class="panel-title">
-                  <span class="live-dot"></span>
-                  <h2>Live-Aktivitäten</h2>
-                </div>
-                <div class="activity-list" id="activityList"></div>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section class="view" id="view-kunden" data-view="kunden" aria-labelledby="pageTitle">
-          <div class="table-panel">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Telefonnummer</th>
-                  <th>E-Mail</th>
-                  <th>Besuche</th>
-                  <th>Beigetreten am</th>
-                  <th>Mitglied</th>
-                </tr>
-              </thead>
-              <tbody id="customerRows"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="view" id="view-bestellungen" data-view="bestellungen" aria-labelledby="pageTitle">
-          <div class="stats-row">
-            <article class="small-stat">
-              <strong>34.000,00€</strong>
-              <span>Umsatz seit Start</span>
-            </article>
-            <article class="small-stat">
-              <strong>45</strong>
-              <span>Belohnungen freigeschaltet</span>
-            </article>
-            <article class="small-stat">
-              <strong>157</strong>
-              <span>Belohnungen eingelöst</span>
-            </article>
-          </div>
-
-          <div class="table-panel labeled">
-            <h2>Letzte Transaktionen</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Telefonnummer</th>
-                  <th>E-Mail</th>
-                  <th>Art / Typ</th>
-                  <th>Leistung / Artikel</th>
-                  <th>Bezahlt am</th>
-                </tr>
-              </thead>
-              <tbody id="transactionRows"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="view" id="view-mitgliedschaften" data-view="mitgliedschaften" aria-labelledby="pageTitle">
-          <div class="stats-row two">
-            <article class="small-stat">
-              <strong>5.345,00€</strong>
-              <span>Monatlich wiederkehrender Umsatz</span>
-            </article>
-            <article class="small-stat">
-              <strong>36</strong>
-              <span>Aktive Mitgliedschaften insgesamt</span>
-            </article>
-          </div>
-
-          <div class="table-panel labeled">
-            <h2>Fehlgeschlagene Zahlungen</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Telefonnummer</th>
-                  <th>E-Mail</th>
-                  <th>Fehlgeschlagen am</th>
-                  <th>Betrag</th>
-                </tr>
-              </thead>
-              <tbody id="failedPaymentRows"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="view" id="view-app" data-view="app" aria-labelledby="pageTitle">
-          <div class="settings-tabs" role="tablist" aria-label="App Einstellungen">
-            <button class="settings-tab is-active" type="button" data-settings-tab="angebote">Angebote</button>
-            <button class="settings-tab" type="button" data-settings-tab="produkte">Behandlungen / Produkte</button>
-            <button class="settings-tab" type="button" data-settings-tab="mitgliedschaft">Mitgliedschaft</button>
-            <button class="settings-tab" type="button" data-settings-tab="belohnungen">Belohnungen</button>
-            <button class="settings-tab" type="button" data-settings-tab="neuigkeiten">Neuigkeiten</button>
-            <button class="settings-tab" type="button" data-settings-tab="einstellungen">Einstellungen</button>
-          </div>
-
-          <div class="settings-view is-visible" id="settings-angebote">
-            <div class="offer-toolbar">
-              <div class="segmented-control" aria-label="Angebotsart">
-                <button class="segment is-active" type="button" data-offer-mode="single">Einmalige Angebote</button>
-                <button class="segment" type="button" data-offer-mode="automated">Automatisierte Angebote</button>
-              </div>
-              <button class="primary-button slim" type="button">Einmaliges Angebot erstellen <span>+</span></button>
-            </div>
-
-            <div class="settings-grid">
-              <article class="panel list-panel">
-                <h2>Erstellte einmalige Angebote</h2>
-                <div class="offer-list" id="offerList"></div>
-              </article>
-              <article class="panel preview-panel">
-                <h2>Vorschau</h2>
-                <div class="notification-preview">
-                  <span>App Benachrichtigung</span>
-                  <strong id="offerPreviewTitle">Wir werden 10 Jahre alt!</strong>
-                  <p id="offerPreviewBody">Wir feiern unser Jubiläum - und das direkt in Als Dankeschön wartet eine kleine Überraschung in der App auf dich.</p>
-                </div>
-                <div class="gift-preview" aria-hidden="true">
-                  <svg viewBox="0 0 260 152" role="img" aria-label="">
-                    <defs>
-                      <clipPath id="giftPreviewClip">
-                        <rect x="0" y="0" width="260" height="152" rx="12" ry="12" />
-                      </clipPath>
-                    </defs>
-                    <g clip-path="url(#giftPreviewClip)">
-                      <rect class="gift-base" x="0" y="0" width="260" height="152" />
-                      <rect class="gift-band-h" x="0" y="61" width="260" height="22" />
-                      <rect class="gift-band-v" x="119" y="0" width="22" height="152" />
-                      <g class="gift-tag-wrap" transform="translate(5 77) rotate(11)">
-                        <rect class="gift-tag" x="0" y="0" width="90" height="31" rx="3" ry="3" />
-                        <text class="gift-tag-text" id="giftTagText" x="9" y="19" textLength="70" lengthAdjust="spacingAndGlyphs">10tes Firmenjubiläum</text>
-                      </g>
-                      <path class="gift-ribbon-dark" d="M82 152 118.5 82.5 141 82.5 104 152 95 133z" />
-                      <path class="gift-ribbon-dark" d="M178 152 141.5 82.5 119 82.5 156 152 165 133z" />
-                      <ellipse class="gift-bow" cx="96" cy="56" rx="38" ry="15" transform="rotate(21 96 56)" />
-                      <ellipse class="gift-bow-dark" cx="100" cy="61" rx="28" ry="8" transform="rotate(21 100 61)" />
-                      <ellipse class="gift-bow" cx="164" cy="56" rx="38" ry="15" transform="rotate(-21 164 56)" />
-                      <ellipse class="gift-bow-dark" cx="160" cy="61" rx="28" ry="8" transform="rotate(-21 160 61)" />
-                      <ellipse class="gift-knot" cx="130" cy="72" rx="11" ry="16" />
-                    </g>
-                  </svg>
-                </div>
-              </article>
-            </div>
-          </div>
-
-          <div class="settings-view" id="settings-produkte">
-            <div class="section-heading">
-              <h2>Produkte &amp; Behandlungen</h2>
-              <button class="primary-button slim" type="button">Mehr hinzufügen <span>+</span></button>
-            </div>
-            <div class="product-grid" id="productGrid"></div>
-          </div>
-
-          <div class="settings-view" id="settings-mitgliedschaft">
-            <div class="section-heading membership-heading">
-              <h2>Mitgliedschaft</h2>
-              <button class="primary-button slim" type="button">Neue Mitgliedschaft hinzufügen <span>+</span></button>
-            </div>
-            <div class="settings-grid">
-              <article class="panel list-panel">
-                <h2>Erstellte einmalige Angebote</h2>
-                <div class="membership-list" id="membershipList"></div>
-              </article>
-              <article class="panel preview-panel phone-preview-panel">
-                <h2>Vorschau</h2>
-                <div class="phone-frame" aria-hidden="true"></div>
-              </article>
-            </div>
-          </div>
-
-          <div class="settings-view" id="settings-belohnungen">
-            <div class="section-heading">
-              <h2>Belohnungen Einstellungen</h2>
-              <button class="primary-button slim" type="button">Neue Belohnung hinzufügen <span>+</span></button>
-            </div>
-            <div class="settings-grid">
-              <article class="panel rewards-panel">
-                <h2>Belohnungs-Angebote</h2>
-                <div class="reward-grid" id="rewardGrid"></div>
-              </article>
-              <article class="panel points-panel">
-                <h2>Punkte-Konfiguration</h2>
-                <div class="points-list" id="pointsList"></div>
-              </article>
-            </div>
-          </div>
-
-          <div class="settings-view" id="settings-neuigkeiten">
-            <div class="section-heading">
-              <h2>Neuigkeiten &amp; Nachrichten</h2>
-              <button class="primary-button slim" type="button">Neuigkeit hinzufügen <span>+</span></button>
-            </div>
-            <div class="news-grid" id="newsGrid"></div>
-          </div>
-
-          <div class="settings-view" id="settings-einstellungen">
-            <div class="section-heading configurator-heading">
-              <h2>App-Konfigurator</h2>
-            </div>
-            <article class="panel configurator-panel">
-              <div class="config-grid">
-                <label class="image-field">
-                  <span>Ihr Logo</span>
-                  <span class="image-box">
-                    <img src="./assets/brand-logo@2x.png" alt="Vanity Cosmetic Logo" />
-                    <button type="button" aria-label="Logo aktualisieren"><span class="nav-icon" data-icon="sync"></span></button>
-                  </span>
-                </label>
-                <label class="image-field">
-                  <span>App Icon</span>
-                  <span class="image-box">
-                    <img src="./assets/app-icon@2x.png" alt="Vanity Cosmetic App Icon" />
-                    <button type="button" aria-label="App Icon aktualisieren"><span class="nav-icon" data-icon="sync"></span></button>
-                  </span>
-                </label>
-                <div class="brand-fields">
-                  <label>
-                    <span>Brand Farbe</span>
-                    <span class="color-input">
-                      <span class="color-swatch"></span>
-                      <button type="button" aria-label="Brand Farbe bearbeiten"><span class="nav-icon" data-icon="edit"></span></button>
-                      <input value="#00000" aria-label="Brand Farbe" />
-                    </span>
-                  </label>
-                  <label>
-                    <span>Schriftart</span>
-                    <select aria-label="Schriftart">
-                      <option>Inter</option>
-                      <option>Manrope</option>
-                    </select>
-                  </label>
-                </div>
-                <label class="image-field wide">
-                  <span>Titelbild für Startseite</span>
-                  <span class="image-box start-image">
-                    <img src="./assets/start-image@2x.png" alt="Titelbild für Startseite" />
-                    <button type="button" aria-label="Titelbild aktualisieren"><span class="nav-icon" data-icon="sync"></span></button>
-                  </span>
-                </label>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section class="view" id="view-auszahlungen" data-view="auszahlungen" aria-labelledby="pageTitle">
-          <div class="empty-view">
-            <h2>Auszahlungen</h2>
-          </div>
-        </section>
-      </main>
-    </div>
+        <main class="content" id="mainContent" tabindex="-1"></main>
+      </div>
     </div>
 
-    <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
-    <aside class="account-drawer" id="accountDrawer" aria-label="Accountdetails" aria-hidden="true">
-      <div class="drawer-header">
-        <h2>Accountdetails</h2>
-        <button class="close-button" id="closeDrawer" type="button" aria-label="Accountdetails schließen">
-          <img src="./assets/figma-icons/close-crisp.svg" alt="" aria-hidden="true" />
-        </button>
-      </div>
-      <div class="account-card">
-        <button class="edit-floating" type="button" aria-label="Accountdetails bearbeiten">
-          <span class="nav-icon" data-icon="edit"></span>
-        </button>
-        <dl>
-          <div>
-            <dt>Vor- und Nachname</dt>
-            <dd>Anna Meyer</dd>
-          </div>
-          <div>
-            <dt>Firmenname</dt>
-            <dd>Vanity Cosmetic</dd>
-          </div>
-          <div>
-            <dt>Unternehmensadresse</dt>
-            <dd>Hamburger Street 91<br />67676 Bayern<br />Deutschland</dd>
-          </div>
-          <div>
-            <dt>E-Mail-Adresse</dt>
-            <dd>name@beispiel.de</dd>
-          </div>
-          <div>
-            <dt>USt-IdNr.</dt>
-            <dd>DE123456789</dd>
-          </div>
-        </dl>
-      </div>
-      <div class="drawer-actions">
-        <button type="button"><span class="nav-icon" data-icon="receipt"></span>Meine Rechnungen</button>
-        <button class="logout" type="button"><span class="nav-icon" data-icon="logout"></span>Logout</button>
-      </div>
-    </aside>
+    <button class="sidebar-scrim" id="sidebarScrim" type="button" aria-label="Navigation schließen" hidden></button>
 
-    <div class="modal-backdrop" id="modalBackdrop" hidden></div>
-    <section class="redeem-modal" id="redeemModal" aria-modal="true" aria-hidden="true" role="dialog" aria-labelledby="redeemTitle">
-      <div class="modal-header">
-        <h2 id="redeemTitle">Transaktion einlösen</h2>
-        <button class="close-button pink" id="closeModal" type="button" aria-label="Transaktion einlösen schließen">
-          <img src="./assets/figma-icons/close-crisp.svg" alt="" aria-hidden="true" />
-        </button>
-      </div>
-      <div class="redeem-body"></div>
-    </section>
+    <div class="modal-layer" id="modalLayer" hidden>
+      <button class="modal-backdrop" id="modalBackdrop" type="button" aria-label="Dialog schließen"></button>
+      <section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></section>
+    </div>
 
-    <script src="./app.js?v=20260618-1"></script>
-  </body>
+    <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="./assets/vendor/lucide.min.js"></script>
+    <script src="./app.js?v=20260717-media-selection-fix"></script>
+  <script src="dashboard-final-fixes.js?v=20260717-media-selection-fix"></script>
+</body>
 </html>

@@ -1,293 +1,2080 @@
-var routeTitles = {
-  zuhause: "Hallo Anna!",
-  kunden: "Kundenprofile",
-  bestellungen: "Bestellungen & Aufträge",
-  mitgliedschaften: "Mitgliedschaften",
-  app: "App Einstellungen",
-  auszahlungen: "Auszahlungen"
+"use strict";
+
+const APP_ROUTES = new Set([
+  "belohnungen",
+  "belohnung-editor",
+  "produkte",
+  "produkt-editor",
+  "mitgliedschaft",
+  "mitgliedschaft-editor",
+  "kommunikation",
+  "neuigkeit-editor",
+  "nachricht-editor",
+  "medien",
+  "einstellungen"
+]);
+
+const ROUTE_PARENTS = {
+  "bestellung-detail": "bestellungen",
+  "kunde-detail": "kunden",
+  "belohnung-editor": "belohnungen",
+  "produkt-editor": "produkte",
+  "mitgliedschaft-editor": "mitgliedschaft",
+  "neuigkeit-editor": "kommunikation",
+  "nachricht-editor": "kommunikation"
 };
-var icons = {
-  home: '<span class="figma-icon icon-home"></span>',
-  user: '<span class="figma-icon icon-user"></span>',
-  "user-plus": '<span class="figma-icon icon-user-plus"></span>',
-  bag: '<span class="figma-icon icon-bag"></span>',
-  sync: '<span class="figma-icon icon-sync"></span>',
-  edit: '<span class="figma-icon icon-edit"></span>',
-  "edit-filled": '<span class="figma-icon icon-edit-filled"></span>',
-  bank: '<span class="figma-icon icon-bank"></span>',
-  support: '<span class="figma-icon icon-support"></span>',
-  star: '<span class="figma-icon icon-star"></span>',
-  chevron: '<span class="figma-icon icon-chevron"></span>',
-  trash: '<span class="figma-icon icon-close"></span>',
-  receipt: '<span class="figma-icon icon-receipt"></span>',
-  logout: '<span class="figma-icon icon-chevron logout-chevron"></span>',
-  pin: '<span class="figma-icon icon-user-plus"></span>'
+
+const metrics = [
+  ["umsatz", "20.000,00€", "Gesamtumsatz"],
+  ["codes", "165", "Codes eingelöst"],
+  ["memberships", "34", "Mitgliedschaften"],
+  ["referrals", "86", "Empfehlungen"],
+  ["average", "56,00€", "Ø Bestellwert"],
+  ["points", "20.000", "Punkte vergeben"],
+  ["discounts", "600,00€", "Vergebene Rabatte"],
+  ["messages", "345", "Nachrichten gesendet"]
+];
+
+const orders = Array.from({ length: 16 }, (_, index) => ({
+  key: `order-${index + 1}`,
+  id: "#1556",
+  date: "04.06.2026",
+  customer: "Marlon Hedwig",
+  items: 3,
+  valid: "04.07.2026",
+  total: "110,75€",
+  status: "Bezahlt",
+  pointsAwarded: 150,
+  paymentRevision: 1,
+  pointsCredited: true
+}));
+
+const customers = Array.from({ length: 16 }, () => ({
+  name: "Willi Tilman Claus",
+  points: "1450",
+  membership: "ja",
+  orders: "12",
+  spent: "340,45€",
+  messages: "34"
+}));
+
+const rewards = Array.from({ length: 16 }, () => ({
+  title: "Title only goes so long as possible..",
+  status: "Aktiv",
+  period: "11.02.2026-15.02.2026",
+  repeat: "Einmalig",
+  product: "Mundsalbengel"
+}));
+
+const products = Array.from({ length: 12 }, () => ({
+  name: "Wimpernbehandlung",
+  status: "Aktiv",
+  category: "Behandlung",
+  points: "40"
+}));
+
+const memberships = [
+  {
+    title: "Sorana Mitgliedschaft",
+    benefits: [
+      "Monatliche Auswahl: 1 von 9 Behandlungen im Wert von über 129 €",
+      "10 % Rabatt auf jede weitere Behandlung",
+      "Zusätzliche exklusive Mitgliederbelohnungen."
+    ],
+    active: 40
+  }
+];
+
+const mediaItems = Array.from({ length: 9 }, (_, index) => ({
+  file: "59_60cf2b30-e4a8-4a41-879b-379c1eee31a0",
+  type: "PNG",
+  date: "01.12.2026 um 15:42 Uhr",
+  size: "1,75 MB",
+  reference: "1 Produkt",
+  source: "./assets/treatment-card.png"
+}));
+
+const state = {
+  route: "zuhause",
+  metric: "umsatz",
+  appNavOpen: false,
+  dirty: false,
+  activeRewardStatus: "Aktiv",
+  rewardRecipient: "all",
+  activeProductStatus: "Aktiv",
+  productCategory: "Behandlung",
+  productDiscountEnabled: true,
+  productPointsEnabled: true,
+  selectedOrderKeys: new Set(),
+  selectedMediaKeys: new Set(),
+  deletedMediaKeys: new Set(),
+  customerPointBalances: new Map([["Marlon Hedwig", 1250]]),
+  orderPointsLedger: orders.map((order) => ({
+    idempotencyKey: `${order.key}:credit:${order.paymentRevision}`,
+    orderKey: order.key,
+    customer: order.customer,
+    pointsDelta: order.pointsAwarded,
+    type: "credit",
+    revision: order.paymentRevision
+  })),
+  tags: ["Haut", "Haare", "Haare", "Haare", "Haut", "Haare", "Haare", "Haare"],
+  selectedTags: ["Haut", "Haare"]
 };
-var activities = [
-  ["Neuer Nutzer", "12.03.2026"],
-  ["Neues Mitglied", "12.03.2026"],
-  ["Neuer Bestellung", "12.03.2026"]
-];
-var customerRows = Array.from({ length: 8 }, () => ["Markus Johann", "-", "-", "-", "-", "-"]);
-var transactions = Array.from({ length: 4 }, (_, index) => ["Markus Johann", "-", "-", index === 0 ? "Kauf" : "-", "-", "-"]);
-var failedPayments = Array.from({ length: 4 }, (_, index) => ["Markus Johann", "-", "-", index === 0 ? "05.12.2026" : "-", "-"]);
-var offerSets = {
-  single: [
-    {
-      title: "10tes Firmenjubiläum",
-      meta: "Aktiv vom 10.03.26 bis 12.03.26",
-      previewTitle: "Wir werden 10 Jahre alt!",
-      previewBody: "Wir feiern unser Jubiläum – und das dank dir! Als Dankeschön wartet eine kleine Überraschung in der App auf dich."
-    },
-    {
-      title: "Neues Teammitglied",
-      meta: "Aktiv vom 23.03.26 bis 27.03.26",
-      previewTitle: "Neues Teammitglied",
-      previewBody: "Lerne unser neues Teammitglied kennen und sichere dir dein Angebot direkt in der App."
-    }
-  ],
-  automated: [
-    {
-      title: "Silvester",
-      meta: "Aktiv immer am 31. Dezember",
-      previewTitle: "Ein glanzvolles neues Jahr!",
-      previewBody: "Danke für deine Treue in diesem Jahr. Wir wünschen dir einen guten Rutsch und freuen uns darauf, dich auch 2027 bei uns begrüßen zu dürfen."
-    },
-    {
-      title: "Halloween",
-      meta: "Aktiv immer am 31. Oktober",
-      previewTitle: "Halloween",
-      previewBody: "Sichere dir dein saisonales Angebot direkt in der App."
-    }
-  ]
-};
-var products = Array.from({ length: 6 }, () => ({
-  title: "Wimpernverlängerung",
-  desc: "Genieße einen ausdrucksstarken Augenaufschlag mit unseren hochwertigen Einzelwimpern. Wir setzen...",
-  tag: "Augen",
-  price: "85,00€"
-}));
-var memberships = [
-  ["Glow & Care Essential", "59 €/monatlich"],
-  ["Lash & Brow Perfection", "89 €/monatlich"],
-  ["Pure Body Wellness", "129 €/monatlich"]
-];
-var rewards = Array.from({ length: 4 }, () => ({
-  title: "Intensive Gesichts-Ausreinigung",
-  points: "1300 Punkte",
-  desc: "Tauschbar gegen einen 25-€-Gutschein"
-}));
-var points = [
-  ["Empfehlungen", "50 Punkte", "user-plus"],
-  ["Google Bewertungen", "80 Punkte", "star"],
-  ["Salon Besuch", "100 Punkte", "star"]
-];
-var news = Array.from({ length: 6 }, () => ({
-  title: "Wir haben unsere Membership-Optionen erweitert!",
-  desc: "Ab sofort kannst du deinen Kunden noch attraktivere Pakete anbieten. Entdecke neue, flexible Laufzeiten...",
-  date: "21.03.26"
-}));
-function syncDashboardScale() {
-  const baseWidth = 956;
-  const baseHeight = 577;
-  const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight);
-  const stageWidth = Math.max(baseWidth, window.innerWidth / scale);
-  const extraWidth = stageWidth - baseWidth;
-  document.documentElement.style.setProperty("--dashboard-scale", String(Math.max(scale, 0.1)));
-  document.documentElement.style.setProperty("--dashboard-stage-width", `${stageWidth}px`);
-  document.documentElement.style.setProperty("--dashboard-main-shift", `${extraWidth / 2}px`);
+
+const mainContent = document.querySelector("#mainContent");
+const sidebar = document.querySelector("#sidebar");
+const sidebarScrim = document.querySelector("#sidebarScrim");
+const appSubnav = document.querySelector("#appSubnav");
+const appNavToggle = document.querySelector("#appNavToggle");
+const modalLayer = document.querySelector("#modalLayer");
+const modal = document.querySelector("#modal");
+const toastRegion = document.querySelector("#toastRegion");
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
-function injectIcons(root = document) {
-  root.querySelectorAll("[data-icon]").forEach((element) => {
-    const icon = icons[element.dataset.icon];
-    if (icon)
-      element.innerHTML = icon;
+
+function createIcons(root = document) {
+  if (!window.lucide) return;
+  window.lucide.createIcons({
+    root,
+    attrs: {
+      "stroke-width": 1.8,
+      "aria-hidden": "true"
+    }
   });
 }
-function renderActivity() {
-  const target = document.querySelector("#activityList");
-  target.innerHTML = activities.map(([title, date]) => `<div class="activity-item"><strong>${title}</strong><span>${date}</span></div>`).join("");
+
+function routeFamily(route) {
+  return ROUTE_PARENTS[route] || route;
 }
-function renderRows(targetId, rows) {
-  document.querySelector(targetId).innerHTML = rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("");
+
+function routeFromHash() {
+  const route = window.location.hash.replace(/^#/, "");
+  const allowed = new Set([
+    "zuhause",
+    "bestellungen",
+    "bestellung-detail",
+    "kunden",
+    "kunde-detail",
+    ...APP_ROUTES,
+    "auszahlungen"
+  ]);
+  return allowed.has(route) ? route : "zuhause";
 }
-function renderOffers(mode = "single") {
-  const offers = offerSets[mode];
-  const list = document.querySelector("#offerList");
-  list.innerHTML = offers.map((offer, index) => `
-        <button class="offer-item ${index === 0 ? "is-active" : ""}" type="button" data-offer-index="${index}">
-          <span><strong>${offer.title}</strong><span>${offer.meta}</span></span>
-          <span class="row-actions">
-            <span class="round-action">${icons["edit-filled"]}</span>
-            ${mode === "automated" ? `<span class="round-action delete">${icons.trash}</span>` : ""}
-          </span>
-        </button>
-      `).join("");
-  document.querySelector("#offerPreviewTitle").textContent = offers[0].previewTitle;
-  document.querySelector("#offerPreviewBody").textContent = offers[0].previewBody;
-  const giftTag = document.querySelector("#giftTagText");
-  giftTag.textContent = mode === "automated" ? "Frohes Neues!" : "10tes Firmenjubiläum";
-  giftTag.setAttribute("textLength", mode === "automated" ? "56" : "70");
-  list.querySelectorAll("[data-offer-index]").forEach((button) => {
-    button.addEventListener("click", () => {
-      list.querySelectorAll(".offer-item").forEach((item) => item.classList.remove("is-active"));
-      button.classList.add("is-active");
-      const offer = offers[Number(button.dataset.offerIndex)];
-      document.querySelector("#offerPreviewTitle").textContent = offer.previewTitle;
-      document.querySelector("#offerPreviewBody").textContent = offer.previewBody;
-    });
+
+function navigate(route) {
+  if (!APP_ROUTES.has(route)) state.appNavOpen = false;
+  window.location.hash = route;
+}
+
+function updateNavigation() {
+  const family = routeFamily(state.route);
+  document.querySelectorAll("[data-route]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.route === family);
   });
+  const inApp = APP_ROUTES.has(state.route);
+  appNavToggle.classList.toggle("is-open", inApp || state.appNavOpen);
+  appNavToggle.setAttribute("aria-expanded", String(inApp || state.appNavOpen));
+  appSubnav.hidden = !(inApp || state.appNavOpen);
 }
-function renderProducts() {
-  document.querySelector("#productGrid").innerHTML = products.map((product) => `
-        <article class="product-card">
-          <img src="./assets/treatment-card@2x.png" alt="" />
-          <button class="round-action" type="button" aria-label="Behandlung bearbeiten">${icons["edit-filled"]}</button>
-          <span class="tag product-type">Behandlung</span>
-          <div class="product-body">
-            <h3>${product.title}</h3>
-            <p>${product.desc}</p>
-            <span class="tag product-category">${product.tag}</span>
-            <span class="product-price">${product.price}</span>
-          </div>
-        </article>
-      `).join("");
+
+function render() {
+  state.route = routeFromHash();
+  if (state.route !== "medien") {
+    state.selectedMediaKeys.clear();
+  }
+  const views = {
+    zuhause: renderHome,
+    bestellungen: renderOrders,
+    "bestellung-detail": renderOrderDetail,
+    kunden: renderCustomers,
+    "kunde-detail": renderCustomerDetail,
+    belohnungen: renderRewards,
+    "belohnung-editor": renderRewardEditor,
+    produkte: renderProducts,
+    "produkt-editor": renderProductEditor,
+    mitgliedschaft: renderMemberships,
+    "mitgliedschaft-editor": renderMembershipEditor,
+    kommunikation: renderCommunications,
+    "neuigkeit-editor": () => renderCommunicationEditor("Neuigkeit"),
+    "nachricht-editor": () => renderCommunicationEditor("Nachricht"),
+    medien: renderMedia,
+    einstellungen: renderSettings,
+    auszahlungen: renderPayouts
+  };
+  mainContent.innerHTML = (views[state.route] || renderHome)();
+  updateNavigation();
+  enhanceSelects(mainContent);
+  bindPageEvents();
+  createIcons(mainContent);
+
+  mainContent.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
-function renderMemberships() {
-  document.querySelector("#membershipList").innerHTML = memberships.map(([title, price], index) => `
-        <button class="membership-item ${index === 0 ? "is-active" : ""}" type="button">
-          <span><strong>${title}</strong><span>${price}</span></span>
-          <span class="row-actions">
-            <span class="round-action">${icons["edit-filled"]}</span>
-          </span>
-        </button>
-      `).join("");
+
+function pageHeader(title, action = "") {
+  return `
+    <div class="page-header">
+      <h1 class="page-title">${title}</h1>
+      ${action}
+    </div>
+  `;
 }
-function renderRewards() {
-  document.querySelector("#rewardGrid").innerHTML = rewards.map((reward) => `
-        <article class="reward-card">
-          <img src="./assets/reward-card@2x.png" alt="" />
-          <span class="points-badge">${reward.points}</span>
-          <h3>${reward.title}</h3>
-          <p>${reward.desc}</p>
-        </article>
-      `).join("");
-  document.querySelector("#pointsList").innerHTML = points.map(([title, value, icon]) => `
-        <div class="point-item">
-          <span class="metric-icon" data-icon="${icon}"></span>
-          <strong>${title}</strong>
-          <span class="point-pill">${value}</span>
+
+function searchField(placeholder, id = "pageSearch") {
+  return `
+    <label class="search-field">
+      <i data-lucide="search"></i>
+      <input id="${id}" type="search" placeholder="${placeholder}" autocomplete="off" />
+    </label>
+  `;
+}
+
+function addButton(label, route) {
+  return `
+    <button class="button primary compact icon-end list-add-button" type="button" data-navigate="${route}">
+      ${label}<img class="button-icon" src="./assets/figma-icons/plus.svg" alt="" />
+    </button>
+  `;
+}
+
+function checkboxCell(attributes = "") {
+  return `<td class="checkbox-cell"><input type="checkbox" aria-label="Zeile auswählen" ${attributes} /></td>`;
+}
+
+function chartSvg() {
+  return `
+    <div class="chart-wrap" aria-label="Umsatzentwicklung">
+      <img src="./assets/home-chart.png" alt="Zeitverlauf der ausgewählten Kennzahl" />
+    </div>
+  `;
+}
+
+function renderHome() {
+  return `
+    <section class="page page-home">
+      <button class="analytics-filter" type="button" id="periodButton">
+        <i data-lucide="calendar-days"></i><span>Seit Start</span><i data-lucide="chevron-down"></i>
+      </button>
+      <div class="analytics-panel">
+        <div class="metric-strip">
+          ${metrics.map(([key, value, label]) => `
+            <button class="metric-card ${state.metric === key ? "is-active" : ""}" type="button" data-metric="${key}">
+              <strong>${value}</strong><span>${label}</span>
+            </button>
+          `).join("")}
         </div>
-      `).join("");
-  injectIcons(document.querySelector("#pointsList"));
+        <div id="chartTarget">${chartSvg()}</div>
+      </div>
+    </section>
+  `;
 }
-function renderNews() {
-  document.querySelector("#newsGrid").innerHTML = news.map((item) => `
-        <article class="news-card">
-          <img src="./assets/news-card@2x.png" alt="" />
-          <button class="round-action" type="button" aria-label="Neuigkeit bearbeiten">${icons["edit-filled"]}</button>
-          <span class="date-badge">${item.date}</span>
-          <div class="news-body">
-            <h3>${item.title}</h3>
-            <p>${item.desc}</p>
+
+function hasOrderLedgerEntry(idempotencyKey) {
+  return state.orderPointsLedger.some((entry) => entry.idempotencyKey === idempotencyKey);
+}
+
+function recordOrderPointsEntry(order, type, revision, pointsDelta) {
+  const idempotencyKey = `${order.key}:${type}:${revision}`;
+  if (hasOrderLedgerEntry(idempotencyKey)) return false;
+
+  state.orderPointsLedger.push({
+    idempotencyKey,
+    orderKey: order.key,
+    customer: order.customer,
+    pointsDelta,
+    type,
+    revision
+  });
+
+  const currentBalance = state.customerPointBalances.get(order.customer) ?? 0;
+  state.customerPointBalances.set(order.customer, currentBalance + pointsDelta);
+  return true;
+}
+
+function applyOrderPaymentTransition(order, nextStatus) {
+  if (!order || nextStatus === order.status) return { changed: false, pointsDelta: 0 };
+
+  if (nextStatus === "Bezahlt") {
+    const revision = order.paymentRevision + 1;
+    const credited = recordOrderPointsEntry(order, "credit", revision, order.pointsAwarded);
+    order.paymentRevision = revision;
+    order.pointsCredited = true;
+    order.status = nextStatus;
+    return { changed: true, pointsDelta: credited ? order.pointsAwarded : 0 };
+  }
+
+  const reversed = order.pointsCredited
+    ? recordOrderPointsEntry(order, "reversal", order.paymentRevision, -order.pointsAwarded)
+    : false;
+  order.pointsCredited = false;
+  order.status = nextStatus;
+  return { changed: true, pointsDelta: reversed ? -order.pointsAwarded : 0 };
+}
+
+function renderOrders() {
+  const selectedOrders = orders.filter((order) => state.selectedOrderKeys.has(order.key));
+  const selectedOrder = selectedOrders.length === 1 ? selectedOrders[0] : null;
+
+  return `
+    <section class="page orders-page">
+      ${pageHeader("Bestellungen")}
+      <div class="page-toolbar">${searchField("Bestellung oder Name suchen")}</div>
+      <div class="table-shell table-scroll">
+        <table class="data-table" data-filterable>
+          <colgroup>
+            <col style="width:25px" /><col style="width:115px" /><col style="width:118px" />
+            <col style="width:180px" /><col style="width:54px" /><col style="width:118px" />
+            <col style="width:118px" /><col style="width:122px" />
+          </colgroup>
+          <thead><tr><th class="checkbox-cell"><input type="checkbox" id="orderSelectAll" aria-label="Alle auswählen" /></th><th class="order-payment-header">${selectedOrder ? `
+            <div class="order-status-editor">
+              <button class="order-status-button" id="orderStatusButton" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span>${selectedOrder.status}</span><i data-lucide="chevron-down"></i>
+              </button>
+              <div class="order-status-menu" id="orderStatusMenu" role="listbox" hidden>
+                <button type="button" role="option" data-order-payment-value="Nicht bezahlt" aria-selected="${selectedOrder.status === "Nicht bezahlt"}">Nicht bezahlt</button>
+                <button type="button" role="option" data-order-payment-value="Bezahlt" aria-selected="${selectedOrder.status === "Bezahlt"}">Bezahlt</button>
+              </div>
+            </div>
+          ` : "Bestellung"}</th><th>Datum</th><th>Kunde</th><th>Artikel</th><th>Gültig bis</th><th>Gesamt</th><th>Zahlungsstatus</th></tr></thead>
+          <tbody>
+            ${orders.map((order) => `
+              <tr data-row-route="bestellung-detail" data-order-key="${order.key}" class="${state.selectedOrderKeys.has(order.key) ? "is-selected" : ""}">
+                ${checkboxCell(`data-order-select="${order.key}" ${state.selectedOrderKeys.has(order.key) ? "checked" : ""}`)}
+                <td><strong>${order.id}</strong></td><td>${order.date}</td><td>${order.customer}</td>
+                <td>${order.items}</td><td>${order.valid}</td><td>${order.total}</td><td>${order.status}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function renderOrderDetail() {
+  return `
+    <section class="page order-detail-page">
+      <button class="back-button" type="button" data-navigate="bestellungen"><i data-lucide="chevron-left"></i>Zurück</button>
+      <div class="editor-toolbar order-detail-toolbar">
+        <div class="order-detail-heading">
+          <div class="order-id-row">
+            <h1 class="order-number">#1556</h1>
+            <span class="order-payment-chip">Bezahlt</span>
+            <span class="order-paid-at">am 05.05.2026 um 13:02 Uhr</span>
           </div>
-        </article>
-      `).join("");
+          <p class="order-timestamp">Am 05.01.2026 um 13:02 Uhr aufgegeben</p>
+          <p class="order-timestamp">Gültig bis 05.02.2026</p>
+        </div>
+        <select class="select-field" id="paymentStatus" aria-label="Zahlungsstatus">
+          <option>Nicht bezahlt</option><option selected>Bezahlt</option>
+        </select>
+      </div>
+      <div class="detail-layout">
+        <div>
+          <section class="detail-card order-products-card">
+            <div class="order-lines">
+              ${[
+                ["Kopfverlängerung", "40 Treuepunkte", "40,00€"],
+                ["Wimpernverlängerung", "50 Treuepunkte", "40,00€"],
+                ["Beinverlängerung", "35 Treuepunkte", "40,00€"]
+              ].map(([name, points, price]) => `
+                <div class="order-line">
+                  <img src="./assets/treatment-card.png" alt="" />
+                  <span>${name}</span><span>${points}</span><strong>${price}</strong>
+                </div>
+              `).join("")}
+              <div class="summary-lines">
+                <div class="summary-line"><strong>Gesamt</strong><span>125 Treuepunkte</span><strong>120,00€</strong></div>
+              </div>
+            </div>
+          </section>
+          <section class="detail-card order-summary-card">
+            <div class="summary-lines">
+              <div class="summary-line"><span>Zwischensumme</span><span>2 Artikel</span><strong>120,00€</strong></div>
+              <div class="summary-line"><span>Rabatt</span><span>-12% Wimpernverlängerung</span><strong>6,00€</strong></div>
+              <div class="summary-line"><span>Steuern</span><span>18,20 € inkl. 19 % MwSt.</span><strong>Enthalten</strong></div>
+              <div class="summary-line"><strong>Gesamt</strong><span></span><strong>114,00€</strong></div>
+              <div class="summary-line"><span>Bezahlt</span><span></span><strong>114,00€</strong></div>
+            </div>
+          </section>
+          <section class="note-box order-note-box">
+            <textarea id="orderNote" placeholder="Notiz hinzufügen..." aria-label="Bestellnotiz"></textarea>
+            <button class="button subtle compact" id="saveNote" type="button" disabled>Speichern</button>
+          </section>
+        </div>
+        <aside class="detail-card order-customer-card">
+          <p>Name: <strong>Mark Kümmerle</strong></p>
+          <p>Gesamte Bestellungen: <strong>2</strong></p>
+          <p>Verfügbare Punkte: <strong>1.250 Punkte</strong></p>
+          <p>Mitgliedschaft: <strong>Ja</strong></p>
+          <p>E-Mail-Adresse: <strong>mark@gmail.com</strong></p>
+          <p>Telefonnummer: <strong>01575 334687</strong></p>
+          <p>Empfehlungen: <strong>23</strong></p>
+        </aside>
+      </div>
+    </section>
+  `;
 }
-function setRoute(route) {
-  document.documentElement.dataset.route = route;
-  document.querySelector("#pageTitle").textContent = routeTitles[route];
-  document.querySelectorAll(".nav-item").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.route === route);
-  });
-  document.querySelectorAll(".view").forEach((view) => {
-    view.classList.toggle("is-visible", view.dataset.view === route);
-  });
+
+function renderCustomers() {
+  return `
+    <section class="page customers-page">
+      ${pageHeader("Kunden")}
+      <div class="page-toolbar">${searchField("Name suchen")}</div>
+      <div class="table-shell table-scroll">
+        <div class="customer-bulk-actions" id="customerBulkActions" hidden>
+          <button class="bulk-selection-clear" id="clearCustomerSelection" type="button" aria-label="Auswahl aufheben">
+            <i data-lucide="minus"></i>
+          </button>
+          <label class="bulk-points-field">
+            <input id="bulkPoints" type="number" min="1" step="1" inputmode="numeric" placeholder="Treuepunkte hinzufügen" aria-label="Treuepunkte hinzufügen" />
+            <button id="applyBulkPoints" type="button" disabled aria-label="Treuepunkte anwenden"><i data-lucide="check"></i></button>
+          </label>
+        </div>
+        <table class="data-table" data-filterable>
+          <colgroup>
+            <col style="width:37px" /><col style="width:174px" /><col style="width:127px" />
+            <col style="width:87px" /><col style="width:118px" /><col style="width:162px" /><col style="width:148px" />
+          </colgroup>
+          <thead><tr><th class="checkbox-cell"><input id="customerSelectAll" type="checkbox" aria-label="Alle auswählen" /></th><th>Kundenname</th><th>Aktuelle Punkte</th><th>Mitglied</th><th>Bestellungen</th><th>Ausgegebener Betrag</th><th>Nachrichten erhalten</th></tr></thead>
+          <tbody>
+            ${customers.map((customer) => `
+              <tr data-row-route="kunde-detail">
+                ${checkboxCell("data-customer-select")}<td>${customer.name}</td><td>${customer.points}</td><td>${customer.membership}</td>
+                <td>${customer.orders}</td><td>${customer.spent}</td><td>${customer.messages}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
 }
-function setSettingsTab(tab) {
-  document.querySelectorAll(".settings-tab").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.settingsTab === tab);
-  });
-  document.querySelectorAll(".settings-view").forEach((view) => {
-    view.classList.toggle("is-visible", view.id === `settings-${tab}`);
-  });
+
+function renderCustomerDetail() {
+  return `
+    <section class="page customer-detail-page">
+      <button class="back-button" type="button" data-navigate="kunden"><i data-lucide="chevron-left"></i>Zurück</button>
+      ${pageHeader("Willi Tilman Claus")}
+      <div class="detail-layout customer-detail-layout">
+        <section class="detail-card">
+          <h2>Kundenspezifische Details</h2>
+          <p>Beigetreten am: <strong>02.06.2025</strong></p>
+          <p>Telefonnummer: <strong>01575 334687</strong></p>
+          <p>E-Mail-Adresse: <strong>mark@gmail.com</strong></p>
+          <p>Geburtsdatum: <strong>02.04.1995</strong></p>
+          <p>Adresse:<br /><strong>Erika Mustermann<br />Hauptstraße 12<br />10117 Berlin<br />Deutschland</strong></p>
+        </section>
+        <section class="detail-card">
+          <h2>App Details</h2>
+          <p>Verfügbare Punkte: <strong>1250</strong></p>
+          <p>Ausgegebener Betrag: <strong>360,40€</strong></p>
+          <p>Gesamte Bestellungen: <strong>2</strong></p>
+          <p>Nachrichten erhalten: <strong>34</strong></p>
+          <p>Empfehlungen: <strong>23</strong></p>
+          <p>Mitgliedschaft: <strong>Ja</strong><br />Mitglied seit: <strong>02.11.2025</strong><br />Mitgliedschaft verlängert sich am: <strong>02.05.2026</strong></p>
+        </section>
+      </div>
+    </section>
+  `;
 }
-function openDrawer() {
-  document.querySelector("#drawerBackdrop").hidden = false;
-  const drawer = document.querySelector("#accountDrawer");
-  drawer.classList.add("is-open");
-  drawer.setAttribute("aria-hidden", "false");
+
+function renderRewards() {
+  return `
+    <section class="page rewards-page">
+      ${pageHeader("Belohnungen")}
+      <div class="page-toolbar rewards-toolbar">
+        ${searchField("Titel suchen")}
+        ${addButton("Mehr hinzufügen", "belohnung-editor")}
+      </div>
+      <div class="table-shell table-scroll">
+        <table class="data-table" data-filterable>
+          <colgroup>
+            <col style="width:37px" /><col style="width:204px" /><col style="width:75px" />
+            <col style="width:184px" /><col style="width:134px" /><col style="width:219px" />
+          </colgroup>
+          <thead><tr><th class="checkbox-cell"><input type="checkbox" aria-label="Alle auswählen" /></th><th>Titel</th><th>Status</th><th>Einlösbar von/bis</th><th>Wiederholungsrate</th><th>Behandlung/Produkt</th></tr></thead>
+          <tbody>
+            ${rewards.map((reward, index) => `
+              <tr data-row-route="belohnung-editor" class="${index === 0 ? "is-selected" : ""}">
+                ${checkboxCell()}<td title="${reward.title}">${reward.title}</td><td>${reward.status}</td>
+                <td>${reward.period}</td><td>${reward.repeat}</td><td>${reward.product}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
 }
-function closeDrawer() {
-  document.querySelector("#drawerBackdrop").hidden = true;
-  const drawer = document.querySelector("#accountDrawer");
-  drawer.classList.remove("is-open");
-  drawer.setAttribute("aria-hidden", "true");
+
+function editorToolbar(title, status, backRoute) {
+  return `
+    <button class="back-button" type="button" data-navigate="${backRoute}"><i data-lucide="chevron-left"></i>Zurück</button>
+    <div class="editor-toolbar">
+      <div class="editor-title-row">
+        <h1 class="editor-title">${title}</h1>
+        <select class="select-field editor-status" aria-label="Status">
+          <option ${status === "Aktiv" ? "selected" : ""}>Aktiv</option>
+          <option ${status === "Inaktiv" ? "selected" : ""}>Inaktiv</option>
+        </select>
+        <button class="button danger compact" type="button" data-delete-object><span>Löschen</span><i data-lucide="trash-2"></i></button>
+      </div>
+      <button class="button primary compact" id="editorSave" type="button" disabled>Speichern<i data-lucide="bookmark"></i></button>
+    </div>
+  `;
 }
-function openModal() {
-  document.querySelector("#modalBackdrop").hidden = false;
-  const modal = document.querySelector("#redeemModal");
-  modal.classList.add("is-open");
-  modal.setAttribute("aria-hidden", "false");
+
+function renderRewardEditor() {
+  return `
+    <section class="page reward-editor-page">
+      ${editorToolbar("Titel", state.activeRewardStatus, "belohnungen")}
+      <form class="editor-grid reward-editor-grid" data-editor-form>
+        <div class="editor-stack">
+          <section class="editor-card reward-basic-card">
+            <div class="field"><label for="rewardTitle">Titel</label><input id="rewardTitle" type="text" placeholder="Titel hinzufügen..." /></div>
+            <div class="reward-product-row">
+              <span class="field-label">Behandlung/Produkt auswählen</span>
+              <button class="button subtle compact" type="button" data-open-object-picker><span data-object-selection-label>Auswählen</span><i data-lucide="database"></i></button>
+            </div>
+            <div class="reward-discount-row">
+              <label for="rewardDiscount">Rabatt wählen</label>
+              <div class="reward-discount-input"><input id="rewardDiscount" type="number" min="0" max="100" placeholder="00" /><span>%</span></div>
+            </div>
+            <div class="field reward-color-field"><label for="rewardColor">Belohnung Farbe</label><div class="color-control"><input class="color-swatch" id="rewardColor" type="color" value="#009dd7" /><i data-lucide="pencil"></i><input type="text" value="#000000" aria-label="Farbwert" /></div></div>
+          </section>
+          <section class="editor-card reward-dates-card">
+            <h2>Einlösbar von/bis</h2>
+            <div class="field-grid">
+              <div class="field"><label for="rewardStartDate">Startdatum</label><input id="rewardStartDate" type="date" value="2026-03-11" data-reward-start-date /></div>
+              <div class="field"><label for="rewardStartTime">Startzeit</label><input id="rewardStartTime" type="time" aria-label="Startzeit" /></div>
+              <div class="field"><label for="rewardEndDate">Enddatum</label><input id="rewardEndDate" type="date" value="2026-03-13" min="2026-03-11" data-reward-end-date /></div>
+              <div class="field"><label for="rewardEndTime">Endzeit</label><input id="rewardEndTime" type="time" aria-label="Endzeit" /></div>
+            </div>
+            <div class="reward-repeat-row">
+              <label for="rewardRepeat">Wiederholungsrate</label>
+              <select id="rewardRepeat"><option>Einmalig</option><option>Jährlich</option><option>Monatlich</option><option>Wöchentlich</option><option>Halbjährlich</option></select>
+            </div>
+          </section>
+          <section class="editor-card reward-recipient-card">
+            <h2>Empfänger</h2>
+            <div class="recipient-toggle" role="group" aria-label="Empfänger auswählen">
+              <button class="${state.rewardRecipient === "all" ? "is-active" : ""}" type="button" data-reward-recipient="all" aria-pressed="${state.rewardRecipient === "all"}">Alle Kunden</button>
+              <button class="${state.rewardRecipient === "selected" ? "is-active" : ""}" type="button" data-reward-recipient="selected" aria-pressed="${state.rewardRecipient === "selected"}">Bestimmte Kunden</button>
+            </div>
+          </section>
+        </div>
+        <div class="editor-stack">
+          <section class="editor-card reward-message-card">
+            <h2>Handy-Nachricht</h2>
+            <div class="field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
+            <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
+          </section>
+          <section class="editor-card reward-preview-card">
+            <h2>Vorschau</h2>
+            <img src="./assets/gift-preview-figma.png" alt="Belohnungsvorschau" />
+          </section>
+        </div>
+      </form>
+    </section>
+  `;
 }
+
+function renderProducts() {
+  return `
+    <section class="page product-page">
+      ${pageHeader("Behandlungen/Produkte")}
+      <div class="page-toolbar product-toolbar">
+        ${searchField("Behandlung/Produkt suchen")}
+        ${addButton("Mehr hinzufügen", "produkt-editor")}
+      </div>
+      <div class="table-shell table-scroll">
+        <table class="data-table" data-filterable>
+          <colgroup><col style="width:37px" /><col style="width:265px" /><col style="width:98px" /><col style="width:161px" /><col style="width:292px" /></colgroup>
+          <thead><tr><th class="checkbox-cell"><input type="checkbox" aria-label="Alle auswählen" /></th><th>Name</th><th>Status</th><th>Kategorie</th><th>Punkte pro Kauf</th></tr></thead>
+          <tbody>
+            ${products.map((product, index) => `
+              <tr data-row-route="produkt-editor" class="${index === 0 ? "is-selected" : ""}">
+                ${checkboxCell()}<td>${product.name}</td><td>${product.status}</td><td>${product.category}</td><td>${product.points}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function renderProductPricingFields() {
+  if (state.productCategory === "Geschenk") {
+    return `
+      <div class="product-pricing-section product-gift-pricing">
+        <div class="field compact-value-field gift-points-field">
+          <label>Benötigte Treuepunkte für dieses Geschenk</label>
+          <div class="value-suffix points">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" value="0" data-points-input aria-label="Benötigte Treuepunkte" />
+            <span>Punkte</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="product-pricing-section product-standard-pricing">
+      <div class="field compact-value-field">
+        <label>Regulärer Preis</label>
+        <div class="value-suffix"><input type="text" inputmode="decimal" value="0" data-price-input aria-label="Regulärer Preis" /><span>€</span></div>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="discountToggle" ${state.productDiscountEnabled ? "checked" : ""} />
+        <span>Rabattierten Preis festlegen</span>
+      </label>
+      <div class="product-discount-fields" ${state.productDiscountEnabled ? "" : "hidden"}>
+        <div class="field compact-value-field">
+          <label>Rabattierter Preis</label>
+          <div class="value-suffix"><input type="text" inputmode="decimal" value="0" data-price-input aria-label="Rabattierter Preis" /><span>€</span></div>
+        </div>
+        <div class="field-help">
+          <i data-lucide="info"></i>
+          <span>Der rabattierte Preis muss niedriger als der reguläre Preis sein, um im Shop automatisch als Rabatt angezeigt zu werden.</span>
+        </div>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="pointsToggle" ${state.productPointsEnabled ? "checked" : ""} />
+        <span>Treuepunkte festlegen</span>
+      </label>
+      <div class="product-points-fields" ${state.productPointsEnabled ? "" : "hidden"}>
+        <div class="field compact-value-field">
+          <label>Treuepunkte</label>
+          <div class="value-suffix points"><input type="text" inputmode="numeric" pattern="[0-9]*" value="0" data-points-input aria-label="Treuepunkte" /><span>Punkte</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProductEditor() {
+  return `
+    <section class="page product-editor-page">
+      ${editorToolbar("Wimpernbehandlung", state.activeProductStatus, "produkte")}
+      <form class="editor-grid product-editor-grid" data-editor-form>
+        <div class="editor-stack">
+          <section class="editor-card product-category-card">
+            <div class="field">
+              <label for="productCategory">Kategorie</label>
+              <select id="productCategory">
+                ${["Behandlung", "Produkt", "Geschenk", "Paket"].map((option) => `<option ${state.productCategory === option ? "selected" : ""}>${option}</option>`).join("")}
+              </select>
+            </div>
+          </section>
+          <section class="editor-card product-content-card">
+            <div class="field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
+            <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
+            <div class="field">
+              <label>Bild</label>
+              <button class="media-picker" type="button" data-open-media><i data-lucide="image-plus"></i></button>
+            </div>
+            <div id="packageFields" ${state.productCategory === "Paket" ? "" : "hidden"}>
+              <div class="field package-fields-label"><label>Enthaltene Behandlungen/Produkte</label></div>
+              <div class="list-editor-items">
+                ${["Wimpernbehandlung", "Hautpflege Deluxe", "Wimpernserum 5 ml"].map((name) => `
+                  <div class="list-editor-item"><img src="./assets/treatment-card.png" alt="" /><span>${name}</span><button type="button" aria-label="${name} entfernen"><i data-lucide="x"></i></button></div>
+                `).join("")}
+              </div>
+            </div>
+          </section>
+          <section class="editor-card product-pricing-card">
+            ${renderProductPricingFields()}
+          </section>
+        </div>
+        <section class="editor-card product-tags-card">
+          <h2>Tag-Filter ausgewählt</h2>
+          <div class="tag-list" id="selectedProductTags">
+            ${state.selectedTags.map((tag) => `<span class="tag selected">${tag}<button type="button" data-remove-product-tag="${tag}"><i data-lucide="x"></i></button></span>`).join("")}
+          </div>
+          <hr style="border:0;border-top:1px solid var(--line);margin:14px 0" />
+          <div class="field-label" style="margin-bottom:9px">Tag-Filter verfügbar (In den App Einstellungen verwaltet):</div>
+          <div class="tag-list">
+            ${["Füße", "Hände", "Rücken", "Augenbrauen", "Hals", "Nägel"].map((tag) => `<button class="tag" type="button" data-add-product-tag="${tag}">+ ${tag}</button>`).join("")}
+          </div>
+        </section>
+      </form>
+    </section>
+  `;
+}
+
+function renderMemberships() {
+  return `
+    <section class="page membership-page">
+      ${pageHeader("Mitgliedschaft", addButton("Mehr hinzufügen", "mitgliedschaft-editor"))}
+      <div class="table-shell table-scroll">
+        <table class="data-table">
+          <colgroup><col style="width:37px" /><col style="width:265px" /><col style="width:332px" /><col style="width:219px" /></colgroup>
+          <thead><tr><th class="checkbox-cell"><input type="checkbox" aria-label="Alle auswählen" /></th><th>Titel</th><th>Enthalten</th><th>Aktive Mitglieder</th></tr></thead>
+          <tbody>
+            ${memberships.map((membership) => `
+              <tr data-row-route="mitgliedschaft-editor" class="is-selected">
+                ${checkboxCell()}<td>${membership.title}</td><td>${membership.benefits.join("<br />")}</td><td>${membership.active}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function renderMembershipEditor() {
+  return `
+    <section class="page membership-editor-page">
+      <button class="back-button" type="button" data-navigate="mitgliedschaft"><i data-lucide="chevron-left"></i>Zurück</button>
+      <div class="editor-toolbar membership-editor-toolbar">
+        <h1 class="editor-title">Sorana Mitgliedschaft</h1>
+        <button class="button primary compact" id="editorSave" type="button" disabled>Speichern<i data-lucide="bookmark"></i></button>
+      </div>
+      <form class="editor-grid membership-editor-grid" data-editor-form>
+        <div class="editor-stack">
+          <section class="editor-card membership-main-card">
+            <div class="field membership-title-field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
+            <div class="field membership-description-field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
+            <div class="field membership-benefits-field">
+              <label>Vorteilspunkte</label>
+              <div class="membership-benefit-row"><span>${memberships[0].benefits[0]}</span><button type="button" aria-label="Vorteil entfernen"><i data-lucide="x"></i></button></div>
+              <div class="membership-benefit-row empty"><input type="text" maxlength="80" placeholder="Eingeben..." aria-label="Vorteilspunkt, maximal 80 Zeichen" /><button type="button" aria-label="Eingabe leeren"><i data-lucide="x"></i></button></div>
+              <button class="soft-action" type="button" data-add-benefit><i data-lucide="circle-plus"></i>Vorteilspunkt hinzufügen</button>
+            </div>
+            <div class="field-grid three membership-price-grid">
+              <div class="field"><label>Mitgliedschaft Preis</label><div class="membership-value"><input type="text" value="0" /><span>€ / Monat</span></div></div>
+              <div class="field"><label>Mindestlaufzeit</label><div class="membership-value"><input type="text" value="0" /><span>Monate</span></div></div>
+              <div class="field"><label>Kundenrabatt</label><div class="membership-value"><input type="text" value="0" /><span>%</span></div></div>
+            </div>
+            <div class="field membership-products-field">
+              <label>Ausgewählte Produkte</label>
+              <div class="list-editor-items">
+                ${Array.from({ length: 4 }, () => `
+                  <div class="list-editor-item"><img src="./assets/treatment-card.png" alt="" /><span>Beinhaarbehandlung mit Salbe und Gurken</span><button type="button" aria-label="Produkt entfernen"><i data-lucide="x"></i></button></div>
+                `).join("")}
+              </div>
+              <button class="soft-action" type="button" data-open-object-picker><i data-lucide="circle-plus"></i>Weiteres Produkt hinzufügen</button>
+            </div>
+            <div class="field membership-cta-field"><label>CTA Button</label><input type="text" placeholder="Text hinzufügen..." /></div>
+          </section>
+          <section class="editor-card membership-home-card">
+            <h2>Home Sektion</h2>
+            <div class="field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
+            <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
+            <div class="field"><label>CTA Button</label><input type="text" placeholder="Text hinzufügen..." /></div>
+          </section>
+        </div>
+        <div class="editor-stack">
+          <section class="editor-card membership-preview-card">
+            <h2>Vorschau Seite</h2>
+            <div class="membership-phone-preview">
+              <div class="preview-app-header">
+                <strong>Mitgliedschaft</strong>
+                <span class="preview-cart"><i data-lucide="shopping-cart"></i><b>4</b></span>
+              </div>
+              <div class="preview-membership-body">
+                <h3>Mehr Ersparnis als Beitrag:<br />Das Abo, das sich selbst trägt.</h3>
+                <p>Zahlt sich von alleine ab: Spare bei jeder Session und maximiere Deine Ergebnisse. Mindestens 6 Monate für besten Erfolg.</p>
+                <h3>99€/ pro Monat</h3>
+                <ul>
+                  ${memberships[0].benefits.map((benefit) => `<li><i data-lucide="badge-check"></i><span>${benefit}</span></li>`).join("")}
+                </ul>
+                <h4>Monatliche Auswahl:</h4>
+                <div class="phone-product-row">
+                  ${Array.from({ length: 3 }, () => `<div class="phone-product"><img src="./assets/treatment-card.png" alt="" /><div><strong>Wimpernverlängerung</strong><small>Augen</small><span>129,00€</span><button type="button">Für 0 € einlösen</button></div></div>`).join("")}
+                </div>
+                <button class="preview-cta" type="button">Jetzt über 100 € im Jahr sparen</button>
+              </div>
+              <div class="preview-bottom-nav">
+                <span><i data-lucide="house"></i>Home</span>
+                <span><i data-lucide="shopping-bag"></i>Shop</span>
+                <span><i data-lucide="gift"></i>Geschenke</span>
+                <span class="active"><i data-lucide="badge"></i>Mitglied</span>
+                <span><i data-lucide="shopping-bag"></i>Bestellungen</span>
+              </div>
+            </div>
+          </section>
+          <section class="editor-card membership-section-card">
+            <h2>Vorschau Sektion</h2>
+            <div class="membership-section-preview">
+              <strong>Spare <span>100€+</span> im Jahr</strong>
+              <p>Sichere dir exklusive Vorteile &amp;<br />Rabatte als Mitglied bei uns.</p>
+              <a href="#mitgliedschaft">Zu den Vorteilen <b>›</b></a>
+            </div>
+          </section>
+        </div>
+      </form>
+    </section>
+  `;
+}
+
+function communicationTable(kind, count) {
+  const isNews = kind === "news";
+  const editorRoute = isNews ? "neuigkeit-editor" : "nachricht-editor";
+  return `
+    <div class="communication-column">
+      <div class="communication-toolbar">
+        <h2 class="section-title">${isNews ? "Neuigkeiten" : "Nachrichten"}</h2>
+        <button class="button primary compact communication-add ${isNews ? "news-add" : "message-add"}" type="button" data-navigate="${editorRoute}">
+          ${isNews ? "Neuigkeit hinzufügen" : "Nachricht hinzufügen"}<i data-lucide="circle-plus"></i>
+        </button>
+      </div>
+      <div class="table-shell table-scroll communication-table-shell">
+        <table class="data-table">
+          <colgroup><col style="width:37px" /><col style="width:164px" /><col style="width:98px" /><col style="width:116px" /></colgroup>
+          <thead><tr><th class="checkbox-cell"><input type="checkbox" aria-label="Alle auswählen" /></th><th>Titel</th><th>Gesendet am</th><th>Erreichte Personen</th></tr></thead>
+          <tbody>
+            ${Array.from({ length: count }, (_, index) => `
+              <tr data-row-route="${editorRoute}" class="${index === (isNews ? 0 : 1) ? "is-selected" : ""}">
+                ${checkboxCell()}<td>Text goes here</td><td>21.02.2026</td><td>43</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderCommunications() {
+  return `
+    <section class="page communications-page">
+      ${pageHeader("Neuigkeiten/Nachrichten")}
+      <div class="split-communications">
+        ${communicationTable("news", 7)}
+        ${communicationTable("messages", 8)}
+      </div>
+    </section>
+  `;
+}
+
+function renderCommunicationEditor(kind) {
+  const isMessage = kind === "Nachricht";
+  return `
+    <section class="page communication-editor-page ${isMessage ? "message-editor-page" : "news-editor-page"}">
+      ${pageHeader(kind)}
+      <div class="communication-editor-toolbar">
+        <h2 class="section-title">${kind}</h2>
+        <button class="button primary compact communication-publish" id="editorSave" type="button" disabled>${kind} veröffentlichen<i data-lucide="circle-plus"></i></button>
+      </div>
+      <form class="editor-card communication-editor-card" data-editor-form>
+        <div class="communication-field communication-title-field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
+        <div class="communication-field communication-description-field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
+        <div class="communication-field communication-image-field"><label>Bild</label><button class="media-picker" type="button" data-open-media><i data-lucide="image-plus"></i></button></div>
+        ${isMessage ? `
+          <div class="communication-field communication-selection-field"><label>Behandlung/Produkt auswählen (optional)</label><button class="button subtle compact" type="button" data-open-object-picker><span data-object-selection-label>Auswählen</span><i data-lucide="database"></i></button></div>
+        ` : ""}
+      </form>
+    </section>
+  `;
+}
+
+function renderMedia() {
+  const visibleMediaItems = mediaItems
+    .map((item, index) => ({ item, key: `media-${index}` }))
+    .filter(({ key }) => !state.deletedMediaKeys.has(key));
+  state.selectedMediaKeys.clear();
+
+  return `
+    <section class="page media-page">
+      ${pageHeader("Medien")}
+      <div class="media-toolbar">
+        ${searchField("Dateiname suchen")}
+        <button class="button primary media-add" type="button" data-open-media>Mehr hinzufügen<i data-lucide="circle-plus"></i></button>
+      </div>
+      <div class="table-shell table-scroll media-table-shell">
+        <div class="media-selection-actions" hidden>
+          <button class="button danger compact media-delete-button" type="button" data-media-delete>
+            <span>Löschen</span><i data-lucide="trash-2"></i>
+          </button>
+        </div>
+        <table class="data-table" data-filterable>
+          <colgroup><col style="width:37px" /><col style="width:45px" /><col style="width:250px" /><col style="width:176px" /><col style="width:134px" /><col style="width:211px" /></colgroup>
+          <thead><tr><th class="checkbox-cell"><input id="mediaSelectAll" type="checkbox" aria-label="Alle auswählen" /></th><th aria-label="Bild"></th><th>Dateiname</th><th>Hinzugefügt am</th><th>Größe</th><th>Referenzen</th></tr></thead>
+          <tbody>
+            ${visibleMediaItems.map(({ item, key }) => `
+              <tr>
+                ${checkboxCell(`data-media-select="${key}"`)}
+                <td class="media-thumb-cell"><img src="${item.source || "./assets/treatment-card.png"}" alt="" /></td>
+                <td class="media-filename"><span>${item.file}</span><small>${item.type}</small></td>
+                <td>${item.date}</td><td>${item.size}</td><td>${item.reference}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function renderSettings() {
+  return `
+    <section class="page page-settings">
+      ${pageHeader("Einstellungen", `<button class="button primary compact settings-save" id="editorSave" type="button" ${state.dirty ? "" : "disabled"}>Speichern<i data-lucide="bookmark"></i></button>`)}
+      <form class="settings-form" data-editor-form>
+        <div class="settings-top-grid">
+          <section class="settings-card settings-branding-card">
+            <div class="settings-asset-field logo-setting">
+              <label>Ihr Logo</label>
+              <div class="asset-preview"><img src="./assets/brand-logo@2x.png" alt="Aktuelles Logo" /><button class="asset-refresh" type="button" data-open-media data-media-target="logo" aria-label="Logo austauschen"><i data-lucide="refresh-cw"></i></button></div>
+            </div>
+            <div class="settings-asset-field icon-setting">
+              <label>App Icon</label>
+              <div class="asset-preview"><img src="./assets/app-icon@2x.png" alt="Aktuelles App Icon" /><button class="asset-refresh" type="button" data-open-media data-media-target="icon" aria-label="App Icon austauschen"><i data-lucide="refresh-cw"></i></button></div>
+            </div>
+            <div class="settings-brand-controls">
+              <div class="settings-control-field">
+                <label>Brand Farbe</label>
+                <div class="color-control" style="--settings-swatch: #000000"><input class="color-swatch" id="brandColor" type="color" value="#000000" /><i data-lucide="pencil"></i><input id="brandColorText" type="text" value="#000000" /></div>
+              </div>
+              <div class="settings-control-field">
+                <label>Schriftart</label>
+                <select><option>Inter</option><option>Manrope</option></select>
+              </div>
+            </div>
+            <div class="settings-asset-field hero-setting">
+              <label>Titelbild für Startseite</label>
+              <div class="asset-preview hero"><img src="./assets/start-image@2x.png" alt="Aktuelles Startbild" /><button class="asset-refresh" type="button" data-open-media data-media-target="hero" aria-label="Startbild austauschen"><i data-lucide="refresh-cw"></i></button></div>
+            </div>
+          </section>
+          <div class="settings-side-stack">
+            <section class="settings-card settings-validity-card">
+              <div class="settings-control-field"><label>Gültigkeitsdauer der Bestellungen</label><input type="text" value="30 Tage" readonly /></div>
+              <div class="settings-control-field"><label>Nachrichten/Bestellungen automatisch löschen nach:</label><select><option>30 Monaten</option><option>24 Monaten</option><option>12 Monaten</option></select></div>
+            </section>
+            <section class="settings-card settings-tags-card">
+              <div class="field-label">Tag-Filter festlegen:</div>
+              <div class="tag-entry"><input id="newTag" type="text" placeholder="Tag-Name eingeben..." /><button class="button primary compact" id="addTag" type="button" disabled>Hinzufügen</button></div>
+              <div class="settings-divider"></div>
+              <div class="tag-list" id="settingsTags">
+                ${state.tags.map((tag, index) => `<span class="tag selected">${tag}<button type="button" data-remove-tag-index="${index}" aria-label="${tag} entfernen"><i data-lucide="x"></i></button></span>`).join("")}
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="settings-middle-grid">
+          <section class="settings-card settings-points-card">
+            <h2>Punktevergabe</h2>
+            <div class="settings-points-grid">
+              <div class="settings-control-field"><label>Pro Empfehlung</label><input type="text" value="0 Punkte" /><span class="field-help"><i data-lucide="info"></i>Punkte werden vergeben, wenn der Kunde den Link zur App versendet.</span></div>
+              <div class="settings-control-field"><label>Pro Login</label><input type="text" value="0 Punkte" /><span class="field-help"><i data-lucide="info"></i>Punkte werden vergeben, wenn der Kunde sich in der App einloggt.</span></div>
+            </div>
+          </section>
+          <section class="settings-card settings-contact-card">
+            <div class="settings-control-field"><label>Telefonnummer</label><input type="tel" placeholder="Telefonnummer hinzufügen..." /></div>
+            <div class="settings-control-field"><label>Terminkalender</label><input type="url" placeholder="Terminkalender-Link hinzufügen..." /></div>
+          </section>
+        </div>
+        <div class="legal-grid">
+          ${[
+            "Impressum",
+            "Datenschutzerklärung",
+            "AGB",
+            "Widerrufsbelehrung"
+          ].map((title) => `
+            <section class="settings-card legal-card"><h2>${title}</h2><div class="legal-field"><label>Inhalt</label><textarea placeholder="Inhalt hinzufügen..."></textarea></div></section>
+          `).join("")}
+        </div>
+      </form>
+    </section>
+  `;
+}
+
+function renderPayouts() {
+  return `
+    <section class="page">
+      ${pageHeader("Auszahlungen")}
+      <div class="payout-summary">
+        <article class="payout-card"><strong>18.420,00€</strong><span>Ausgezahlt seit Start</span></article>
+        <article class="payout-card"><strong>1.580,00€</strong><span>Nächste Auszahlung</span></article>
+        <article class="payout-card"><strong>15.07.2026</strong><span>Voraussichtliches Datum</span></article>
+      </div>
+      <div class="table-shell table-scroll">
+        <table class="data-table">
+          <colgroup><col style="width:170px" /><col style="width:170px" /><col style="width:170px" /><col style="width:170px" /></colgroup>
+          <thead><tr><th>Auszahlung</th><th>Zeitraum</th><th>Betrag</th><th>Status</th></tr></thead>
+          <tbody>
+            ${[
+              ["#PAY-1032", "01.06.–30.06.2026", "2.460,00€", "Ausgezahlt"],
+              ["#PAY-1031", "01.05.–31.05.2026", "2.190,00€", "Ausgezahlt"],
+              ["#PAY-1030", "01.04.–30.04.2026", "2.040,00€", "Ausgezahlt"]
+            ].map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function openModal(content, narrow = false) {
+  modalLayer.classList.remove("profile-layer", "date-range-layer", "media-library-layer", "object-picker-layer", "media-delete-layer");
+  modal.innerHTML = content;
+  modal.removeAttribute("style");
+  modal.className = "modal" + (narrow ? " narrow" : "");
+  modalLayer.hidden = false;
+  createIcons(modal);
+  const closeButton = modal.querySelector("[data-close-modal]");
+  if (closeButton) closeButton.addEventListener("click", closeModal);
+}
+
 function closeModal() {
-  document.querySelector("#modalBackdrop").hidden = true;
-  const modal = document.querySelector("#redeemModal");
-  modal.classList.remove("is-open");
-  modal.setAttribute("aria-hidden", "true");
+  modalLayer.hidden = true;
+  modalLayer.classList.remove("profile-layer", "date-range-layer", "media-library-layer", "object-picker-layer", "media-delete-layer");
+  modal.innerHTML = "";
 }
-function bindEvents() {
-  document.querySelectorAll(".nav-item").forEach((button) => {
+
+function openProfileModal() {
+  openModal(`
+    <h2 id="modalTitle" class="visually-hidden">Profil</h2>
+    <button class="profile-drawer-close" type="button" data-close-modal aria-label="Schließen"><i data-lucide="x"></i></button>
+    <article class="profile-drawer-card">
+      <span class="profile-drawer-avatar"><i data-lucide="user-round"></i></span>
+      <h3>Marie Pommes</h3>
+      <p class="profile-drawer-email"><strong>E-Mail:</strong> marie.pommes@gmx.net</p>
+      <p class="profile-drawer-support">Passwort vergessen oder Fragen?<br /><a href="mailto:support@bemember.app">support@bemember.app</a></p>
+      <button class="profile-logout" type="button" data-profile-logout>
+        <i data-lucide="log-out"></i><span>Ausloggen</span>
+      </button>
+    </article>
+  `);
+  modal.className = "modal profile-drawer";
+  modalLayer.classList.add("profile-layer");
+  modal.querySelector("[data-profile-logout]").addEventListener("click", () => {
+    closeModal();
+    showToast("Abgemeldet");
+  });
+}
+
+const dateRangeState = {
+  start: new Date(2026, 0, 1),
+  end: new Date(2026, 6, 9),
+  visibleMonth: new Date(2026, 5, 1),
+  selectingEnd: false,
+  label: "Seit Start"
+};
+
+const germanMonths = [
+  "Januar", "Februar", "März", "April", "Mai", "Juni",
+  "Juli", "August", "September", "Oktober", "November", "Dezember"
+];
+
+function dateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatGermanDate(date) {
+  return `${date.getDate()}. ${germanMonths[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function calendarMonthMarkup(monthDate) {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  const cells = Array.from({ length: firstDay }, () => '<span class="calendar-day is-empty"></span>');
+  for (let day = 1; day <= days; day += 1) {
+    const date = new Date(year, month, day);
+    const key = dateKey(date);
+    const isStart = dateRangeState.start && key === dateKey(dateRangeState.start);
+    const isEnd = dateRangeState.end && key === dateKey(dateRangeState.end);
+    const isInRange = dateRangeState.start && dateRangeState.end && date > dateRangeState.start && date < dateRangeState.end;
+    const isFuture = date > new Date(2026, 6, 9);
+    const classes = [
+      "calendar-day",
+      isStart || isEnd ? "is-selected" : "",
+      isInRange ? "is-in-range" : "",
+      isFuture ? "is-future" : ""
+    ].filter(Boolean).join(" ");
+    cells.push(`<button class="${classes}" type="button" data-calendar-date="${key}">${day}</button>`);
+  }
+  return `
+    <section class="calendar-month">
+      <h3>${germanMonths[month]} ${year}</h3>
+      <div class="calendar-weekdays">${["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"].map((day) => `<span>${day}</span>`).join("")}</div>
+      <div class="calendar-days">${cells.join("")}</div>
+    </section>
+  `;
+}
+
+function renderDateRangeCalendars() {
+  const months = modal.querySelector("[data-calendar-months]");
+  if (!months) return;
+  const nextMonth = new Date(dateRangeState.visibleMonth.getFullYear(), dateRangeState.visibleMonth.getMonth() + 1, 1);
+  months.innerHTML = calendarMonthMarkup(dateRangeState.visibleMonth) + calendarMonthMarkup(nextMonth);
+  const startInput = modal.querySelector("[data-range-start]");
+  const endInput = modal.querySelector("[data-range-end]");
+  startInput.value = dateRangeState.start ? formatGermanDate(dateRangeState.start) : "";
+  endInput.value = dateRangeState.end ? formatGermanDate(dateRangeState.end) : "";
+  modal.querySelectorAll("[data-calendar-date]").forEach((button) => {
     button.addEventListener("click", () => {
-      const route = button.dataset.route;
-      history.replaceState(null, "", `#${route}`);
-      setRoute(route);
+      const [year, month, day] = button.dataset.calendarDate.split("-").map(Number);
+      const selected = new Date(year, month - 1, day);
+      if (!dateRangeState.selectingEnd) {
+        dateRangeState.start = selected;
+        dateRangeState.end = null;
+        dateRangeState.selectingEnd = true;
+      } else {
+        if (selected < dateRangeState.start) {
+          dateRangeState.end = dateRangeState.start;
+          dateRangeState.start = selected;
+        } else {
+          dateRangeState.end = selected;
+        }
+        dateRangeState.selectingEnd = false;
+        dateRangeState.label = "Benutzerdefiniert";
+      }
+      renderDateRangeCalendars();
     });
   });
-  document.querySelectorAll(".settings-tab").forEach((button) => {
-    button.addEventListener("click", () => setSettingsTab(button.dataset.settingsTab));
+}
+
+function applyDatePreset(preset) {
+  const today = new Date(2026, 6, 9);
+  const startOfYear = new Date(2026, 0, 1);
+  const presets = {
+    "Heute": [today, today],
+    "Gestern": [new Date(2026, 6, 8), new Date(2026, 6, 8)],
+    "Zeitraum bis heute": [startOfYear, today],
+    "Black Friday Cyber Monday": [new Date(2026, 10, 27), new Date(2026, 10, 30)],
+    "Quartale": [new Date(2026, 3, 1), new Date(2026, 5, 30)]
+  };
+  if (!presets[preset]) return;
+  [dateRangeState.start, dateRangeState.end] = presets[preset];
+  dateRangeState.visibleMonth = new Date(dateRangeState.end.getFullYear(), dateRangeState.end.getMonth() - 1, 1);
+  dateRangeState.selectingEnd = false;
+  dateRangeState.label = preset === "Zeitraum bis heute" ? "Seit Start" : preset;
+  modal.querySelectorAll("[data-date-preset]").forEach((button) => button.classList.toggle("is-active", button.dataset.datePreset === preset));
+  renderDateRangeCalendars();
+}
+
+function openDateRangePicker(periodButton) {
+  openModal(`
+    <h2 id="modalTitle" class="visually-hidden">Zeitraum auswählen</h2>
+    <div class="date-range-picker">
+      <aside class="date-range-presets">
+        <button type="button" data-date-preset="Heute">Heute</button>
+        <button type="button" data-date-preset="Gestern">Gestern</button>
+        <span>Letzte</span>
+        <button class="is-active" type="button" data-date-preset="Zeitraum bis heute">Zeitraum bis heute</button>
+        <button type="button" data-date-preset="Black Friday Cyber Monday">Black Friday Cyber Monday</button>
+        <button type="button" data-date-preset="Quartale">Quartale</button>
+        <button type="button" data-custom-range>Benutzerdefinierter<br />Zeitraum</button>
+      </aside>
+      <div class="date-range-main">
+        <div class="date-range-inputs">
+          <input type="text" readonly data-range-start aria-label="Startdatum" />
+          <i data-lucide="arrow-right"></i>
+          <input type="text" readonly data-range-end aria-label="Enddatum" />
+          <button type="button" aria-label="Datum auswählen"><i data-lucide="clock-3"></i></button>
+        </div>
+        <div class="calendar-navigation">
+          <button type="button" data-calendar-previous aria-label="Vorheriger Monat"><i data-lucide="arrow-left"></i></button>
+          <button type="button" data-calendar-next aria-label="Nächster Monat"><i data-lucide="arrow-right"></i></button>
+        </div>
+        <div class="calendar-months" data-calendar-months></div>
+        <div class="date-range-actions">
+          <button class="button secondary compact" type="button" data-close-modal>Abbrechen</button>
+          <button class="button primary compact" type="button" data-apply-range>Anwenden</button>
+        </div>
+      </div>
+    </div>
+  `);
+  modal.className = "modal date-range-modal";
+  modalLayer.classList.add("date-range-layer");
+  renderDateRangeCalendars();
+  modal.querySelectorAll("[data-date-preset]").forEach((button) => button.addEventListener("click", () => applyDatePreset(button.dataset.datePreset)));
+  modal.querySelector("[data-custom-range]").addEventListener("click", () => {
+    dateRangeState.selectingEnd = false;
+    dateRangeState.label = "Benutzerdefiniert";
+    modal.querySelectorAll("[data-date-preset]").forEach((button) => button.classList.remove("is-active"));
   });
-  document.querySelectorAll("[data-offer-mode]").forEach((button) => {
-    button.addEventListener("click", () => {
-      document.querySelectorAll("[data-offer-mode]").forEach((item) => item.classList.remove("is-active"));
-      button.classList.add("is-active");
-      renderOffers(button.dataset.offerMode);
+  modal.querySelector("[data-calendar-previous]").addEventListener("click", () => {
+    dateRangeState.visibleMonth = new Date(dateRangeState.visibleMonth.getFullYear(), dateRangeState.visibleMonth.getMonth() - 1, 1);
+    renderDateRangeCalendars();
+  });
+  modal.querySelector("[data-calendar-next]").addEventListener("click", () => {
+    dateRangeState.visibleMonth = new Date(dateRangeState.visibleMonth.getFullYear(), dateRangeState.visibleMonth.getMonth() + 1, 1);
+    renderDateRangeCalendars();
+  });
+  modal.querySelector("[data-apply-range]").addEventListener("click", () => {
+    periodButton.querySelector("span").textContent = dateRangeState.label;
+    closeModal();
+  });
+}
+
+function openConfirmDelete() {
+  openModal(`
+    <div class="modal-header"><h2 id="modalTitle">Objekt löschen</h2><button class="icon-button" type="button" data-close-modal aria-label="Schließen"><i data-lucide="x"></i></button></div>
+    <div class="modal-body"><p style="margin:0">Möchten Sie dieses Objekt wirklich löschen?</p></div>
+    <div class="modal-actions"><button class="button secondary" type="button" data-close-modal>Nein</button><button class="button danger" type="button" data-confirm-delete>Ja, löschen</button></div>
+  `, true);
+  modal.querySelector("[data-confirm-delete]").addEventListener("click", () => {
+    closeModal();
+    showToast("Objekt wurde gelöscht");
+    navigate(routeFamily(state.route));
+  });
+}
+
+function openMediaDeleteConfirmation(trigger) {
+  const selectedMediaKeys = [...document.querySelectorAll("[data-media-select]:checked")]
+    .map((checkbox) => checkbox.dataset.mediaSelect);
+  if (selectedMediaKeys.length === 0) return;
+  const rect = trigger.getBoundingClientRect();
+  const left = Math.min(window.innerWidth - 195, Math.max(20, rect.left + 96));
+  const top = Math.max(20, rect.top - 94);
+
+  openModal(`
+    <div class="media-delete-dialog">
+      <p>Möchten Sie diese Medien wirklich löschen?</p>
+      <div class="media-delete-actions">
+        <button type="button" data-confirm-media-delete>Ja</button>
+        <button type="button" data-close-modal>Nein</button>
+      </div>
+    </div>
+  `);
+  modal.className = "modal media-delete-confirm";
+  modal.style.setProperty("--media-delete-left", `${Math.round(left)}px`);
+  modal.style.setProperty("--media-delete-top", `${Math.round(top)}px`);
+  modalLayer.classList.add("media-delete-layer");
+  modal.querySelector("[data-close-modal]").addEventListener("click", closeModal);
+  modal.querySelector("[data-confirm-media-delete]").addEventListener("click", () => {
+    selectedMediaKeys.forEach((key) => state.deletedMediaKeys.add(key));
+    state.selectedMediaKeys.clear();
+    closeModal();
+    render();
+    showToast("Medien gelöscht");
+  });
+}
+
+function openOrderPaymentConfirmation(order, nextStatus) {
+  const markingPaid = nextStatus === "Bezahlt";
+  openModal(`
+    <div class="modal-header">
+      <h2 id="modalTitle">${markingPaid ? "Bestellung als bezahlt markieren" : "Zahlung zurücksetzen"}</h2>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0">${markingPaid
+        ? `Möchten Sie ${order.id} als bezahlt markieren und ${order.pointsAwarded} Treuepunkte gutschreiben?`
+        : `Möchten Sie ${order.id} als nicht bezahlt markieren und ${order.pointsAwarded} Treuepunkte wieder abziehen?`}</p>
+    </div>
+    <div class="modal-actions">
+      <button class="button secondary" type="button" data-cancel-payment>Abbrechen</button>
+      <button class="button ${markingPaid ? "primary" : "danger"}" type="button" data-confirm-payment>
+        ${markingPaid ? "Als bezahlt markieren" : "Als nicht bezahlt markieren"}
+      </button>
+    </div>
+  `, true);
+
+  modal.querySelector("[data-cancel-payment]").addEventListener("click", () => {
+    closeModal();
+    render();
+  });
+
+  modal.querySelector("[data-confirm-payment]").addEventListener("click", () => {
+    const result = applyOrderPaymentTransition(order, nextStatus);
+    state.selectedOrderKeys.clear();
+    closeModal();
+    render();
+
+    if (!result.changed) return;
+    showToast(markingPaid
+      ? `${order.pointsAwarded} Treuepunkte gutgeschrieben`
+      : `${order.pointsAwarded} Treuepunkte abgezogen`);
+  });
+}
+
+function closeCustomSelects(except = null) {
+  document.querySelectorAll(".custom-select.is-open").forEach((select) => {
+    if (select === except) return;
+    select.classList.remove("is-open");
+    select.querySelector(".custom-select__button")?.setAttribute("aria-expanded", "false");
+  });
+}
+
+function enhanceSelects(root = document) {
+  root.querySelectorAll("select:not([multiple]):not([data-custom-select-ready])").forEach((select) => {
+    const originalClasses = [...select.classList];
+    const computed = window.getComputedStyle(select);
+    const rect = select.getBoundingClientRect();
+    const width = Math.max(rect.width, Number.parseFloat(computed.width) || 0, 44);
+    const height = Math.max(rect.height, Number.parseFloat(computed.height) || 0, 20);
+    const selectedOption = select.options[select.selectedIndex] || select.options[0];
+    const shell = document.createElement("div");
+    const button = document.createElement("button");
+    const menu = document.createElement("div");
+    const label = document.createElement("span");
+
+    select.dataset.customSelectReady = "true";
+    select.classList.add("native-select-control");
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+
+    shell.className = ["custom-select", ...originalClasses].join(" ");
+    shell.style.setProperty("--custom-select-width", `${width}px`);
+    shell.style.setProperty("--custom-select-height", `${height}px`);
+    button.className = "custom-select__button";
+    button.type = "button";
+    button.disabled = select.disabled;
+    button.setAttribute("aria-haspopup", "listbox");
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-label", select.getAttribute("aria-label") || select.labels?.[0]?.textContent?.trim() || "Auswahl");
+    label.className = "custom-select__label";
+    label.textContent = selectedOption?.textContent || "";
+    button.append(label);
+    button.insertAdjacentHTML("beforeend", '<i data-lucide="chevron-down"></i>');
+
+    menu.className = "custom-select__menu";
+    menu.setAttribute("role", "listbox");
+    [...select.options].forEach((option, index) => {
+      const optionButton = document.createElement("button");
+      optionButton.className = "custom-select__option";
+      optionButton.type = "button";
+      optionButton.dataset.value = option.value;
+      optionButton.dataset.index = String(index);
+      optionButton.setAttribute("role", "option");
+      optionButton.setAttribute("aria-selected", String(option.selected));
+      optionButton.textContent = option.textContent;
+      optionButton.disabled = option.disabled;
+      optionButton.addEventListener("click", () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event("input", { bubbles: true }));
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        closeCustomSelects();
+        button.focus();
+      });
+      menu.append(optionButton);
+    });
+
+    select.parentNode.insertBefore(shell, select);
+    shell.append(select, button, menu);
+
+    const syncSelection = () => {
+      const option = select.options[select.selectedIndex] || select.options[0];
+      label.textContent = option?.textContent || "";
+      menu.querySelectorAll(".custom-select__option").forEach((item) => {
+        item.setAttribute("aria-selected", String(item.dataset.value === select.value));
+      });
+    };
+
+    const openSelect = () => {
+      if (button.disabled) return;
+      const willOpen = !shell.classList.contains("is-open");
+      closeCustomSelects(willOpen ? shell : null);
+      shell.classList.toggle("is-open", willOpen);
+      button.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen) {
+        const selected = menu.querySelector('[aria-selected="true"]');
+        window.requestAnimationFrame(() => selected?.focus());
+      }
+    };
+
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openSelect();
+    });
+    button.addEventListener("keydown", (event) => {
+      if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+        event.preventDefault();
+        openSelect();
+      }
+    });
+    menu.addEventListener("keydown", (event) => {
+      const options = [...menu.querySelectorAll(".custom-select__option:not(:disabled)")];
+      const current = options.indexOf(document.activeElement);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeCustomSelects();
+        button.focus();
+      } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        const direction = event.key === "ArrowDown" ? 1 : -1;
+        options[(current + direction + options.length) % options.length]?.focus();
+      }
+    });
+    select.addEventListener("change", syncSelection);
+  });
+
+  if (!document.documentElement.dataset.customSelectOutsideBound) {
+    document.documentElement.dataset.customSelectOutsideBound = "true";
+    document.addEventListener("click", () => closeCustomSelects());
+  }
+}
+
+function openMediaPicker(trigger = null) {
+  const recentMedia = Array.from({ length: 16 }, (_, index) => ({
+    id: index,
+    name: `59_60cf2b30-e${String(index + 1).padStart(2, "0")}`,
+    type: "PNG",
+    source: "./assets/treatment-card@2x.png"
+  }));
+  const maxSelectedMedia = 3;
+  let selectedMedia = [];
+
+  openModal(`
+    <div class="media-library-dialog">
+      <div class="media-library-heading">
+        <h2 id="modalTitle">Bild</h2>
+        <button class="media-library-close" type="button" data-close-modal aria-label="Schließen"><i data-lucide="x"></i></button>
+      </div>
+      <div class="media-library-toolbar">
+        <div class="media-library-search"><i data-lucide="search"></i><input type="search" data-media-search placeholder="Dateiname suchen" autocomplete="off" aria-label="Dateiname suchen" /></div>
+        <div class="media-library-actions"><span class="media-library-count" data-media-count hidden>0/3 Bilder</span><button class="media-library-add" type="button" data-media-confirm disabled>Hinzufügen<i data-lucide="plus-square"></i></button></div>
+      </div>
+      <div class="media-upload-zone" data-media-drop-zone>
+        <input class="visually-hidden" id="mediaLibraryUpload" type="file" accept="image/*" multiple />
+        <div class="media-upload-empty" data-media-empty>
+          <label class="media-upload-button" for="mediaLibraryUpload">Bild hinzufügen<i data-lucide="plus-square"></i></label>
+          <span>Oder Bilder per Drag &amp; Drop ablegen</span>
+        </div>
+        <div class="media-upload-selection" data-media-selection hidden></div>
+      </div>
+      <h3 class="media-library-subtitle">Zuletzt verwendet:</h3>
+      <div class="media-library-grid" data-media-grid>
+        ${recentMedia.map((item) => `
+          <button class="media-library-item" type="button" data-media-id="${item.id}" data-media-name="${item.name}" data-media-source="${item.source}">
+            <img src="${item.source}" alt="" />
+            <span title="${item.name}">${item.name}...</span>
+            <small>${item.type}</small>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `);
+  modal.className = "modal media-library-modal";
+  modalLayer.classList.add("media-library-layer");
+
+  const confirm = modal.querySelector("[data-media-confirm]");
+  const upload = modal.querySelector("#mediaLibraryUpload");
+  const dropZone = modal.querySelector("[data-media-drop-zone]");
+  const mediaSearch = modal.querySelector("[data-media-search]");
+  const count = modal.querySelector("[data-media-count]");
+  const emptyState = modal.querySelector("[data-media-empty]");
+  const selectionState = modal.querySelector("[data-media-selection]");
+
+  const renderSelection = () => {
+    const hasSelection = selectedMedia.length > 0;
+    modal.classList.toggle("has-media-selection", hasSelection);
+    dropZone.classList.toggle("has-selection", hasSelection);
+    confirm.disabled = !hasSelection;
+    count.hidden = !hasSelection;
+    count.textContent = `${selectedMedia.length}/${maxSelectedMedia} Bilder`;
+    emptyState.hidden = hasSelection;
+    selectionState.hidden = !hasSelection;
+    selectionState.innerHTML = selectedMedia.map((item, index) => `
+      <figure class="media-upload-thumbnail">
+        <img src="${item.source}" alt="${item.name || `Ausgewähltes Bild ${index + 1}`}" />
+        <button type="button" data-remove-media-index="${index}" aria-label="Bild entfernen"><i data-lucide="x"></i></button>
+      </figure>
+    `).join("");
+    selectionState.querySelectorAll("[data-remove-media-index]").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedMedia.splice(Number(button.dataset.removeMediaIndex), 1);
+        renderSelection();
+      });
+    });
+    modal.querySelectorAll(".media-library-item").forEach((item) => {
+      item.classList.toggle("is-selected", selectedMedia.some((media) => media.id === item.dataset.mediaId));
+    });
+    createIcons(selectionState);
+  };
+
+  const chooseSource = (item) => {
+    const existingIndex = selectedMedia.findIndex((media) => media.id === String(item.id));
+    if (existingIndex >= 0) {
+      selectedMedia.splice(existingIndex, 1);
+    } else if (selectedMedia.length < maxSelectedMedia) {
+      selectedMedia.push({ ...item, id: String(item.id) });
+    }
+    renderSelection();
+  };
+
+  const chooseFile = (file) => {
+    if (!file?.type?.startsWith("image/")) return;
+    if (selectedMedia.length >= maxSelectedMedia) return;
+    chooseSource({
+      id: `upload-${file.name}-${file.lastModified}`,
+      name: file.name,
+      type: file.type,
+      source: URL.createObjectURL(file)
+    });
+  };
+
+  modal.querySelectorAll(".media-library-item").forEach((button) => {
+    button.addEventListener("click", () => chooseSource({
+      id: button.dataset.mediaId,
+      name: button.dataset.mediaName,
+      type: "PNG",
+      source: button.dataset.mediaSource
+    }));
+  });
+  const filterMedia = (query) => {
+    modal.querySelectorAll(".media-library-item").forEach((item) => {
+      item.hidden = query.length > 0 && !item.dataset.mediaName.toLocaleLowerCase("de").includes(query);
+    });
+  };
+  mediaSearch.addEventListener("input", (event) => {
+    const query = event.currentTarget.value.trim().toLocaleLowerCase("de");
+    filterMedia(query);
+  });
+  upload.addEventListener("change", () => {
+    [...(upload.files || [])].slice(0, maxSelectedMedia - selectedMedia.length).forEach(chooseFile);
+  });
+  ["dragenter", "dragover"].forEach((type) => dropZone.addEventListener(type, (event) => {
+    event.preventDefault();
+    dropZone.classList.add("is-dragging");
+  }));
+  ["dragleave", "drop"].forEach((type) => dropZone.addEventListener(type, (event) => {
+    event.preventDefault();
+    dropZone.classList.remove("is-dragging");
+  }));
+  dropZone.addEventListener("drop", (event) => {
+    [...(event.dataTransfer?.files || [])].slice(0, maxSelectedMedia - selectedMedia.length).forEach(chooseFile);
+  });
+  confirm.addEventListener("click", () => {
+    if (!selectedMedia.length) return;
+    const selectedSource = selectedMedia[0].source;
+    if (trigger?.classList.contains("media-add")) {
+      const now = new Intl.DateTimeFormat("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date()).replace(",", " um");
+      selectedMedia.slice().reverse().forEach((item) => {
+        const rawName = item.name || `Bild-${Date.now()}`;
+        const extension = rawName.includes(".") ? rawName.split(".").pop().toUpperCase() : "PNG";
+        const file = rawName.replace(/\.[^.]+$/, "");
+        mediaItems.unshift({
+          file,
+          type: extension,
+          date: `${now} Uhr`,
+          size: "1,75 MB",
+          reference: "Noch nicht verwendet",
+          source: item.source
+        });
+      });
+      closeModal();
+      render();
+      showToast(selectedMedia.length === 1 ? "Bild hinzugefügt" : `${selectedMedia.length} Bilder hinzugefügt`);
+      return;
+    }
+    if (trigger?.classList.contains("media-picker")) {
+      trigger.classList.add("has-image");
+      trigger.style.backgroundImage = `url("${selectedSource}")`;
+    }
+    if (trigger?.dataset.mediaTarget) {
+      const previewImage = trigger.closest(".asset-preview")?.querySelector("img");
+      if (previewImage) previewImage.src = selectedSource;
+    }
+    markDirty();
+    closeModal();
+    showToast(selectedMedia.length === 1 ? "Bild ausgewählt" : `${selectedMedia.length} Bilder ausgewählt`);
+  });
+}
+
+function openObjectPicker(trigger = null) {
+  const objects = [
+    ["Wimpernverlängerung", "Augen", "treatment"],
+    ["Hautpflege Deluxe", "Haut", "treatment"],
+    ["Augenbrauen-Styling", "Augen", "treatment"],
+    ["Glow Gesichtsbehandlung", "Haut", "treatment"],
+    ["Fußpflege Classic", "Füße", "treatment"],
+    ["Augen-Glow Set", "Paket", "package"],
+    ["Wimpernserum 5 ml", "Augen", "product"],
+    ["Maniküre Deluxe", "Hände", "treatment"]
+  ];
+  const isMembershipSelection = Boolean(trigger?.closest(".membership-products-field"));
+  const visibleObjects = isMembershipSelection
+    ? objects.filter(([, , type]) => type === "treatment" || type === "product")
+    : objects;
+
+  openModal(`
+    <div class="object-picker-dialog">
+      <label class="object-picker-search"><i data-lucide="search"></i><input type="search" data-object-search placeholder="Behandlung/Produkt auswählen" autocomplete="off" /></label>
+      <div class="object-picker-list">
+        ${visibleObjects.map(([name, category]) => `
+          <button class="object-picker-item" type="button" data-object-name="${name}">
+            <img src="./assets/treatment-card@2x.png" alt="" />
+            <span><strong>${name}</strong><small>${category}</small></span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `, true);
+  modal.className = "modal object-picker-modal";
+  modalLayer.classList.add("object-picker-layer");
+
+  modal.querySelector("[data-object-search]").addEventListener("input", (event) => {
+    const query = event.currentTarget.value.trim().toLocaleLowerCase("de");
+    modal.querySelectorAll(".object-picker-item").forEach((item) => {
+      item.hidden = query.length > 0 && !item.dataset.objectName.toLocaleLowerCase("de").includes(query);
     });
   });
-  document.querySelector("#profileButton").addEventListener("click", openDrawer);
-  document.querySelector("#closeDrawer").addEventListener("click", closeDrawer);
-  document.querySelector("#drawerBackdrop").addEventListener("click", closeDrawer);
-  document.querySelector("#redeemButton").addEventListener("click", openModal);
-  document.querySelector("#closeModal").addEventListener("click", closeModal);
+  modal.querySelectorAll(".object-picker-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (trigger) {
+        trigger.dataset.selectedObject = item.dataset.objectName;
+        const productField = trigger.closest(".membership-products-field");
+        const productList = productField?.querySelector(".list-editor-items");
+        if (productList) {
+          const row = document.createElement("div");
+          row.className = "list-editor-item";
+          row.innerHTML = `<img src="./assets/treatment-card.png" alt="" /><span>${escapeHtml(item.dataset.objectName)}</span><button type="button" aria-label="${escapeHtml(item.dataset.objectName)} entfernen" data-remove-list-item><i data-lucide="x"></i></button>`;
+          productList.appendChild(row);
+          row.querySelector("[data-remove-list-item]").addEventListener("click", () => {
+            row.remove();
+            markDirty();
+          });
+          createIcons(row);
+        } else {
+          const label = trigger.querySelector("[data-object-selection-label]");
+          if (label) {
+            label.textContent = item.dataset.objectName;
+            trigger.classList.add("has-selection");
+          }
+        }
+      }
+      markDirty();
+      closeModal();
+      showToast(`${item.dataset.objectName} ausgewählt`);
+    });
+  });
+  window.requestAnimationFrame(() => modal.querySelector("[data-object-search]")?.focus());
+}
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `<i data-lucide="circle-check"></i><span>${escapeHtml(message)}</span>`;
+  toastRegion.appendChild(toast);
+  createIcons(toast);
+  window.setTimeout(() => toast.remove(), 2600);
+}
+
+function markDirty() {
+  state.dirty = true;
+  const save = document.querySelector("#editorSave");
+  if (save) {
+    save.disabled = false;
+    save.classList.remove("subtle");
+  }
+}
+
+function bindSearch() {
+  const search = document.querySelector("#pageSearch");
+  const table = document.querySelector("[data-filterable]");
+  if (!search || !table) return;
+  search.addEventListener("input", () => {
+    const query = search.value.trim().toLocaleLowerCase("de");
+    table.querySelectorAll("tbody tr").forEach((row) => {
+      row.hidden = query.length > 0 && !row.textContent.toLocaleLowerCase("de").includes(query);
+    });
+  });
+}
+
+function bindPageEvents() {
+  document.querySelectorAll("[data-navigate]").forEach((button) => {
+    button.addEventListener("click", () => navigate(button.dataset.navigate));
+  });
+  document.querySelectorAll("[data-row-route]").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("input,button,a,select,.custom-select")) return;
+      navigate(row.dataset.rowRoute);
+    });
+  });
+  document.querySelectorAll("table input[type='checkbox']").forEach((checkbox) => {
+    checkbox.addEventListener("click", (event) => event.stopPropagation());
+  });
+  bindSearch();
+
+  const orderSelectionInputs = [...document.querySelectorAll("[data-order-select]")];
+  const orderSelectAll = document.querySelector("#orderSelectAll");
+  if (orderSelectionInputs.length && orderSelectAll) {
+    const selectedCount = state.selectedOrderKeys.size;
+    orderSelectAll.checked = selectedCount === orders.length;
+    orderSelectAll.indeterminate = selectedCount > 0 && selectedCount < orders.length;
+
+    orderSelectionInputs.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
+          state.selectedOrderKeys.add(checkbox.dataset.orderSelect);
+        } else {
+          state.selectedOrderKeys.delete(checkbox.dataset.orderSelect);
+        }
+        render();
+      });
+    });
+
+    orderSelectAll.addEventListener("change", () => {
+      state.selectedOrderKeys = orderSelectAll.checked
+        ? new Set(orders.map((order) => order.key))
+        : new Set();
+      render();
+    });
+  }
+
+  const orderStatusButton = document.querySelector("#orderStatusButton");
+  const orderStatusMenu = document.querySelector("#orderStatusMenu");
+  if (orderStatusButton && orderStatusMenu) {
+    const closeOrderStatusMenu = () => {
+      orderStatusMenu.hidden = true;
+      orderStatusButton.setAttribute("aria-expanded", "false");
+      orderStatusButton.closest(".order-status-editor")?.classList.remove("is-open");
+    };
+
+    orderStatusButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const willOpen = orderStatusMenu.hidden;
+      orderStatusMenu.hidden = !willOpen;
+      orderStatusButton.setAttribute("aria-expanded", String(willOpen));
+      orderStatusButton.closest(".order-status-editor")?.classList.toggle("is-open", willOpen);
+      if (willOpen) {
+        document.addEventListener("click", closeOrderStatusMenu, { once: true });
+      }
+    });
+
+    orderStatusMenu.querySelectorAll("[data-order-payment-value]").forEach((option) => {
+      option.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const selectedOrders = orders.filter((order) => state.selectedOrderKeys.has(order.key));
+        const selectedOrder = selectedOrders.length === 1 ? selectedOrders[0] : null;
+        const nextStatus = option.dataset.orderPaymentValue;
+        closeOrderStatusMenu();
+        if (!selectedOrder || nextStatus === selectedOrder.status) return;
+        openOrderPaymentConfirmation(selectedOrder, nextStatus);
+      });
+    });
+  }
+
+  document.querySelectorAll("[data-metric]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.metric = button.dataset.metric;
+      document.querySelectorAll("[data-metric]").forEach((item) => item.classList.toggle("is-active", item === button));
+      const target = document.querySelector("#chartTarget");
+      target.innerHTML = chartSvg();
+    });
+  });
+
+  const periodButton = document.querySelector("#periodButton");
+  if (periodButton) {
+    periodButton.addEventListener("click", () => openDateRangePicker(periodButton));
+  }
+
+  const note = document.querySelector("#orderNote");
+  const saveNote = document.querySelector("#saveNote");
+  if (note && saveNote) {
+    const noteBox = note.closest(".order-note-box");
+    note.addEventListener("input", () => {
+      const hasText = note.value.trim().length > 0;
+      saveNote.disabled = !hasText;
+      noteBox.classList.toggle("is-dirty", hasText);
+      noteBox.classList.remove("is-saved");
+    });
+    saveNote.addEventListener("click", () => {
+      saveNote.disabled = true;
+      noteBox.classList.remove("is-dirty");
+      noteBox.classList.add("is-saved");
+      showToast("Bestellnotiz gespeichert");
+    });
+  }
+
+  const customerRows = [...document.querySelectorAll("[data-customer-select]")];
+  const customerSelectAll = document.querySelector("#customerSelectAll");
+  const customerBulkActions = document.querySelector("#customerBulkActions");
+  const clearCustomerSelection = document.querySelector("#clearCustomerSelection");
+  const bulkPoints = document.querySelector("#bulkPoints");
+  const applyBulkPoints = document.querySelector("#applyBulkPoints");
+  if (customerRows.length && customerSelectAll && customerBulkActions && bulkPoints && applyBulkPoints) {
+    const updateCustomerSelection = () => {
+      const selectedCount = customerRows.filter((checkbox) => checkbox.checked).length;
+      customerBulkActions.hidden = selectedCount === 0;
+      customerSelectAll.checked = selectedCount === customerRows.length;
+      customerSelectAll.indeterminate = selectedCount > 0 && selectedCount < customerRows.length;
+      if (selectedCount === 0) {
+        bulkPoints.value = "";
+        applyBulkPoints.disabled = true;
+      }
+    };
+    customerRows.forEach((checkbox) => checkbox.addEventListener("change", updateCustomerSelection));
+    customerSelectAll.addEventListener("change", () => {
+      customerRows.forEach((checkbox) => {
+        checkbox.checked = customerSelectAll.checked;
+      });
+      updateCustomerSelection();
+    });
+    bulkPoints.addEventListener("input", () => {
+      applyBulkPoints.disabled = !(Number.isInteger(Number(bulkPoints.value)) && Number(bulkPoints.value) > 0);
+    });
+    clearCustomerSelection?.addEventListener("click", () => {
+      customerRows.forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+      updateCustomerSelection();
+    });
+    applyBulkPoints.addEventListener("click", () => {
+      const selectedCount = customerRows.filter((checkbox) => checkbox.checked).length;
+      showToast(`${bulkPoints.value} Treuepunkte für ${selectedCount} Kunden hinzugefügt`);
+      customerRows.forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+      updateCustomerSelection();
+    });
+  }
+
+  const mediaSelectionInputs = [...document.querySelectorAll("[data-media-select]")];
+  const mediaSelectAll = document.querySelector("#mediaSelectAll");
+  const mediaTableShell = document.querySelector(".media-table-shell");
+  const mediaSelectionActions = document.querySelector(".media-selection-actions");
+  const mediaDeleteButton = document.querySelector("[data-media-delete]");
+  if (mediaSelectionInputs.length && mediaSelectAll && mediaTableShell && mediaSelectionActions) {
+    const updateMediaSelection = () => {
+      const selectedCount = mediaSelectionInputs.filter((checkbox) => checkbox.checked).length;
+      mediaSelectionActions.hidden = selectedCount === 0;
+      mediaTableShell.classList.toggle("is-selecting", selectedCount > 0);
+      mediaSelectAll.checked = selectedCount === mediaSelectionInputs.length;
+      mediaSelectAll.indeterminate = selectedCount > 0 && selectedCount < mediaSelectionInputs.length;
+      mediaSelectionInputs.forEach((checkbox) => {
+        checkbox.closest("tr")?.classList.toggle("is-selected", checkbox.checked);
+      });
+    };
+
+    mediaSelectionInputs.forEach((checkbox) => {
+      checkbox.addEventListener("change", updateMediaSelection);
+    });
+
+    mediaSelectAll.addEventListener("change", () => {
+      mediaSelectionInputs.forEach((checkbox) => {
+        checkbox.checked = mediaSelectAll.checked;
+      });
+      updateMediaSelection();
+    });
+
+    updateMediaSelection();
+  }
+
+  mediaDeleteButton?.addEventListener("click", () => openMediaDeleteConfirmation(mediaDeleteButton));
+
+  const editorForm = document.querySelector("[data-editor-form]");
+  if (editorForm) {
+    editorForm.addEventListener("input", markDirty);
+    editorForm.addEventListener("change", markDirty);
+  }
+
+  document.querySelectorAll("[data-reward-recipient]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.rewardRecipient = button.dataset.rewardRecipient;
+      document.querySelectorAll("[data-reward-recipient]").forEach((option) => {
+        const isActive = option === button;
+        option.classList.toggle("is-active", isActive);
+        option.setAttribute("aria-pressed", String(isActive));
+      });
+      markDirty();
+    });
+  });
+
+  const rewardStartDate = document.querySelector("[data-reward-start-date]");
+  const rewardEndDate = document.querySelector("[data-reward-end-date]");
+  if (rewardStartDate && rewardEndDate) {
+    rewardStartDate.addEventListener("change", () => {
+      rewardEndDate.min = rewardStartDate.value;
+      if (rewardEndDate.value && rewardEndDate.value < rewardStartDate.value) {
+        rewardEndDate.value = rewardStartDate.value;
+      }
+    });
+  }
+
+  const editorSave = document.querySelector("#editorSave");
+  if (editorSave) {
+    editorSave.addEventListener("click", (event) => {
+      event.preventDefault();
+      editorSave.disabled = true;
+      state.dirty = false;
+      showToast("Änderungen gespeichert");
+    });
+  }
+
+  document.querySelectorAll("[data-delete-object]").forEach((button) => button.addEventListener("click", openConfirmDelete));
+  document.querySelectorAll("[data-open-media]").forEach((button) => {
+    button.addEventListener("click", () => openMediaPicker(button));
+  });
+  document.querySelectorAll("[data-open-object-picker]").forEach((button) => {
+    button.addEventListener("click", () => openObjectPicker(button));
+  });
+  document.querySelectorAll(".list-editor-item > button").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.closest(".list-editor-item")?.remove();
+      markDirty();
+    });
+  });
+
+  const editorStatus = document.querySelector("select.editor-status");
+  if (editorStatus) {
+    editorStatus.addEventListener("change", () => {
+      if (state.route === "belohnung-editor") state.activeRewardStatus = editorStatus.value;
+      if (state.route === "produkt-editor") state.activeProductStatus = editorStatus.value;
+    });
+  }
+
+  const productCategory = document.querySelector("#productCategory");
+  if (productCategory) {
+    productCategory.addEventListener("change", () => {
+      state.productCategory = productCategory.value;
+      markDirty();
+      render();
+    });
+  }
+
+  const discountToggle = document.querySelector("#discountToggle");
+  if (discountToggle) {
+    discountToggle.addEventListener("change", () => {
+      state.productDiscountEnabled = discountToggle.checked;
+      markDirty();
+      render();
+    });
+  }
+
+  const pointsToggle = document.querySelector("#pointsToggle");
+  if (pointsToggle) {
+    pointsToggle.addEventListener("change", () => {
+      state.productPointsEnabled = pointsToggle.checked;
+      markDirty();
+      render();
+    });
+  }
+
+  document.querySelectorAll("[data-add-product-tag]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tag = button.dataset.addProductTag;
+      if (!state.selectedTags.includes(tag)) state.selectedTags.push(tag);
+      state.dirty = true;
+      render();
+    });
+  });
+  document.querySelectorAll("[data-remove-product-tag]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.selectedTags = state.selectedTags.filter((tag) => tag !== button.dataset.removeProductTag);
+      state.dirty = true;
+      render();
+    });
+  });
+
+  const addBenefit = document.querySelector("[data-add-benefit]");
+  if (addBenefit) {
+    addBenefit.addEventListener("click", () => {
+      const input = addBenefit.previousElementSibling.querySelector("input");
+      if (input) input.focus();
+      markDirty();
+    });
+  }
+
+  const addTag = document.querySelector("#addTag");
+  const newTag = document.querySelector("#newTag");
+  if (addTag && newTag) {
+    newTag.addEventListener("input", () => {
+      addTag.disabled = newTag.value.trim().length === 0;
+    });
+    addTag.addEventListener("click", () => {
+      const value = newTag.value.trim();
+      if (value && !state.tags.includes(value)) {
+        state.tags.push(value);
+        state.dirty = true;
+        render();
+        showToast("Tag hinzugefügt");
+      }
+    });
+  }
+  document.querySelectorAll("[data-remove-tag-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.tags.splice(Number(button.dataset.removeTagIndex), 1);
+      state.dirty = true;
+      render();
+    });
+  });
+
+  document.querySelectorAll("[data-points-input]").forEach((input) => {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "");
+      if (!input.value) input.value = "0";
+    });
+  });
+
+  const brandColor = document.querySelector("#brandColor");
+  const brandColorText = document.querySelector("#brandColorText");
+  if (brandColor && brandColorText) {
+    const colorControl = brandColor.closest(".color-control");
+    brandColor.addEventListener("input", () => {
+      brandColorText.value = brandColor.value.toUpperCase();
+      colorControl?.style.setProperty("--settings-swatch", brandColor.value);
+      document.documentElement.style.setProperty("--blue", brandColor.value);
+      markDirty();
+    });
+    brandColorText.addEventListener("change", () => {
+      if (/^#[0-9a-f]{6}$/i.test(brandColorText.value)) {
+        brandColor.value = brandColorText.value;
+        colorControl?.style.setProperty("--settings-swatch", brandColorText.value);
+        document.documentElement.style.setProperty("--blue", brandColorText.value);
+      }
+    });
+  }
+
+}
+
+function bindShellEvents() {
+  document.querySelectorAll(".nav-item[data-route], .subnav [data-route]").forEach((button) => {
+    button.addEventListener("click", () => {
+      navigate(button.dataset.route);
+      closeMobileSidebar();
+    });
+  });
+  appNavToggle.addEventListener("click", () => {
+    state.appNavOpen = !state.appNavOpen;
+    updateNavigation();
+  });
+  document.querySelector("#profileButton").addEventListener("click", openProfileModal);
   document.querySelector("#modalBackdrop").addEventListener("click", closeModal);
+  document.querySelector("#mobileMenu").addEventListener("click", () => {
+    sidebar.classList.add("is-open");
+    sidebarScrim.hidden = false;
+  });
+  sidebarScrim.addEventListener("click", closeMobileSidebar);
+
+  const globalSearch = document.querySelector("#globalSearch");
+  globalSearch.addEventListener("input", () => {
+    const local = document.querySelector("#pageSearch");
+    if (local) {
+      local.value = globalSearch.value;
+      local.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      closeDrawer();
       closeModal();
+      closeMobileSidebar();
     }
   });
-  window.addEventListener("hashchange", () => setRoute(getInitialRoute()));
-  window.addEventListener("resize", syncDashboardScale);
 }
-function getInitialRoute() {
-  const route = window.location.hash.replace("#", "");
-  return routeTitles[route] ? route : "zuhause";
+
+function closeMobileSidebar() {
+  sidebar.classList.remove("is-open");
+  sidebarScrim.hidden = true;
 }
-function getInitialSettingsTab() {
-  const tab = new URLSearchParams(window.location.search).get("settings");
-  return ["angebote", "produkte", "mitgliedschaft", "belohnungen", "neuigkeiten", "einstellungen"].includes(tab) ? tab : "angebote";
-}
-syncDashboardScale();
-injectIcons();
-renderActivity();
-renderRows("#customerRows", customerRows);
-renderRows("#transactionRows", transactions);
-renderRows("#failedPaymentRows", failedPayments);
-renderOffers("single");
-renderProducts();
-renderMemberships();
-renderRewards();
-renderNews();
-setRoute(getInitialRoute());
-setSettingsTab(getInitialSettingsTab());
-bindEvents();
+
+window.addEventListener("hashchange", () => {
+  state.dirty = false;
+  render();
+});
+bindShellEvents();
+createIcons();
+render();
