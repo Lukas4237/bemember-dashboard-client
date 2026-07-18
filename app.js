@@ -31,7 +31,6 @@ const metrics = [
   ["referrals", "86", "Empfehlungen"],
   ["average", "56,00€", "Ø Bestellwert"],
   ["points", "20.000", "Punkte vergeben"],
-  ["discounts", "600,00€", "Vergebene Rabatte"],
   ["messages", "345", "Nachrichten gesendet"]
 ];
 
@@ -75,6 +74,7 @@ const products = Array.from({ length: 12 }, () => ({
 
 const memberships = [
   {
+    key: "membership-0",
     title: "Sorana Mitgliedschaft",
     benefits: [
       "Monatliche Auswahl: 1 von 9 Behandlungen im Wert von über 129 €",
@@ -118,6 +118,11 @@ const state = {
   selectedOrderKeys: new Set(),
   selectedMediaKeys: new Set(),
   deletedMediaKeys: new Set(),
+  selectedMembershipKeys: new Set(),
+  deletedMembershipKeys: new Set(),
+  membershipBenefits: [memberships[0].benefits[0], ""],
+  packageProducts: ["Wimpernbehandlung", "Hautpflege Deluxe", "Wimpernserum 5 ml"],
+  membershipProducts: Array.from({ length: 4 }, () => "Beinhaarbehandlung mit Salbe und Gurken"),
   customerPointBalances: new Map([["Marlon Hedwig", 1250]]),
   orderPointsLedger: orders.map((order) => ({
     idempotencyKey: `${order.key}:credit:${order.paymentRevision}`,
@@ -385,8 +390,10 @@ function renderOrderDetail() {
             <span class="order-payment-chip">Bezahlt</span>
             <span class="order-paid-at">am 05.05.2026 um 13:02 Uhr</span>
           </div>
-          <p class="order-timestamp">Am 05.01.2026 um 13:02 Uhr aufgegeben</p>
-          <p class="order-timestamp">Gültig bis 05.02.2026</p>
+          <div class="order-metadata">
+            <p class="order-timestamp">Am 05.01.2026 um 13:02 Uhr aufgegeben</p>
+            <p class="order-timestamp">Gültig bis 05.02.2026</p>
+          </div>
         </div>
         <select class="select-field" id="paymentStatus" aria-label="Zahlungsstatus">
           <option>Nicht bezahlt</option><option selected>Bezahlt</option>
@@ -757,20 +764,21 @@ function renderProductEditor() {
               </select>
             </div>
           </section>
-          <section class="editor-card product-content-card">
+          <section class="editor-card product-content-card ${state.productCategory === "Paket" ? "has-package-fields" : ""}">
             <div class="field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
             <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
             <div class="field">
               <label>Bild</label>
               ${renderProductMediaPicker()}
             </div>
-            <div id="packageFields" ${state.productCategory === "Paket" ? "" : "hidden"}>
+            <div id="packageFields" class="package-products-field" ${state.productCategory === "Paket" ? "" : "hidden"}>
               <div class="field package-fields-label"><label>Enthaltene Behandlungen/Produkte</label></div>
               <div class="list-editor-items">
-                ${["Wimpernbehandlung", "Hautpflege Deluxe", "Wimpernserum 5 ml"].map((name) => `
-                  <div class="list-editor-item"><img src="./assets/treatment-card.png" alt="" /><span>${name}</span><button type="button" aria-label="${name} entfernen"><i data-lucide="x"></i></button></div>
+                ${state.packageProducts.map((name, index) => `
+                  <div class="list-editor-item"><img src="./assets/treatment-card.png" alt="" /><span>${name}</span><button type="button" aria-label="${name} entfernen" data-remove-package-product-index="${index}"><i data-lucide="x"></i></button></div>
                 `).join("")}
               </div>
+              <button class="soft-action" type="button" data-open-object-picker><i data-lucide="circle-plus"></i>Weiteres Produkt hinzufügen</button>
             </div>
           </section>
           <section class="editor-card product-pricing-card">
@@ -794,17 +802,28 @@ function renderProductEditor() {
 }
 
 function renderMemberships() {
+  const visibleMemberships = memberships.filter((membership) => !state.deletedMembershipKeys.has(membership.key));
+  [...state.selectedMembershipKeys].forEach((key) => {
+    if (!visibleMemberships.some((membership) => membership.key === key)) state.selectedMembershipKeys.delete(key);
+  });
+  const selectedCount = state.selectedMembershipKeys.size;
+
   return `
     <section class="page membership-page">
       ${pageHeader("Mitgliedschaft", addButton("Mehr hinzufügen", "mitgliedschaft-editor"))}
-      <div class="table-shell table-scroll">
+      <div class="table-shell table-scroll membership-table-shell ${selectedCount > 0 ? "is-selecting" : ""}">
+        <div class="membership-selection-actions" ${selectedCount > 0 ? "" : "hidden"}>
+          <button class="button danger compact membership-delete-button" type="button" data-membership-delete>
+            <span>Löschen</span><i data-lucide="trash-2"></i>
+          </button>
+        </div>
         <table class="data-table">
           <colgroup><col style="width:37px" /><col style="width:265px" /><col style="width:332px" /><col style="width:219px" /></colgroup>
-          <thead><tr><th class="checkbox-cell"><input type="checkbox" aria-label="Alle auswählen" /></th><th>Titel</th><th>Enthalten</th><th>Aktive Mitglieder</th></tr></thead>
+          <thead><tr><th class="checkbox-cell"><input id="membershipSelectAll" type="checkbox" aria-label="Alle auswählen" /></th><th>Titel</th><th>Enthalten</th><th>Aktive Mitglieder</th></tr></thead>
           <tbody>
-            ${memberships.map((membership) => `
-              <tr data-row-route="mitgliedschaft-editor" class="is-selected">
-                ${checkboxCell()}<td>${membership.title}</td><td>${membership.benefits.join("<br />")}</td><td>${membership.active}</td>
+            ${visibleMemberships.map((membership) => `
+              <tr data-row-route="mitgliedschaft-editor" class="${state.selectedMembershipKeys.has(membership.key) ? "is-selected" : ""}">
+                ${checkboxCell(`data-membership-select="${membership.key}" ${state.selectedMembershipKeys.has(membership.key) ? "checked" : ""}`)}<td>${membership.title}</td><td>${membership.benefits.join("<br />")}</td><td>${membership.active}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -829,9 +848,13 @@ function renderMembershipEditor() {
             <div class="field membership-description-field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
             <div class="field membership-benefits-field">
               <label>Vorteilspunkte</label>
-              <div class="membership-benefit-row"><span>${memberships[0].benefits[0]}</span><button type="button" aria-label="Vorteil entfernen"><i data-lucide="x"></i></button></div>
-              <div class="membership-benefit-row empty"><input type="text" maxlength="80" placeholder="Eingeben..." aria-label="Vorteilspunkt, maximal 80 Zeichen" /><button type="button" aria-label="Eingabe leeren"><i data-lucide="x"></i></button></div>
-              <button class="soft-action" type="button" data-add-benefit><i data-lucide="circle-plus"></i>Vorteilspunkt hinzufügen</button>
+              ${state.membershipBenefits.map((benefit, index) => `
+                <div class="membership-benefit-row ${benefit ? "" : "empty"}">
+                  <input type="text" maxlength="80" value="${escapeHtml(benefit)}" placeholder="Eingeben..." aria-label="Vorteilspunkt ${index + 1}, maximal 80 Zeichen" data-membership-benefit-index="${index}" />
+                  <button type="button" aria-label="Vorteilspunkt ${index + 1} entfernen" data-remove-benefit-index="${index}" ${state.membershipBenefits.length <= 2 ? "disabled" : ""}><i data-lucide="x"></i></button>
+                </div>
+              `).join("")}
+              <button class="soft-action" type="button" data-add-benefit ${state.membershipBenefits.length >= 3 ? "disabled" : ""}><i data-lucide="circle-plus"></i>Vorteilspunkt hinzufügen</button>
             </div>
             <div class="field-grid three membership-price-grid">
               <div class="field"><label>Mitgliedschaft Preis</label><div class="membership-value"><input type="text" value="0" /><span>€ / Monat</span></div></div>
@@ -841,8 +864,8 @@ function renderMembershipEditor() {
             <div class="field membership-products-field">
               <label>Ausgewählte Produkte</label>
               <div class="list-editor-items">
-                ${Array.from({ length: 4 }, () => `
-                  <div class="list-editor-item"><img src="./assets/treatment-card.png" alt="" /><span>Beinhaarbehandlung mit Salbe und Gurken</span><button type="button" aria-label="Produkt entfernen"><i data-lucide="x"></i></button></div>
+                ${state.membershipProducts.map((name, index) => `
+                  <div class="list-editor-item"><img src="./assets/treatment-card.png" alt="" /><span>${name}</span><button type="button" aria-label="${name} entfernen" data-remove-membership-product-index="${index}"><i data-lucide="x"></i></button></div>
                 `).join("")}
               </div>
               <button class="soft-action" type="button" data-open-object-picker><i data-lucide="circle-plus"></i>Weiteres Produkt hinzufügen</button>
@@ -1055,7 +1078,7 @@ function renderSettings() {
             <h2>Punktevergabe</h2>
             <div class="settings-points-grid">
               <div class="settings-control-field"><label>Pro Empfehlung</label><input type="text" value="0 Punkte" /><span class="field-help"><i data-lucide="info"></i>Punkte werden vergeben, wenn der Kunde den Link zur App versendet.</span></div>
-              <div class="settings-control-field"><label>Pro Login</label><input type="text" value="0 Punkte" /><span class="field-help"><i data-lucide="info"></i>Punkte werden vergeben, wenn der Kunde sich in der App einloggt.</span></div>
+              <div class="settings-control-field"><label>Pro Registrierung</label><input type="text" value="0 Punkte" /><span class="field-help"><i data-lucide="info"></i>Einmalige Punktegutschrift bei Registrierung in der App.</span></div>
             </div>
           </section>
           <section class="settings-card settings-contact-card">
@@ -1334,8 +1357,8 @@ function openMediaDeleteConfirmation(trigger) {
     .map((checkbox) => checkbox.dataset.mediaSelect);
   if (selectedMediaKeys.length === 0) return;
   const rect = trigger.getBoundingClientRect();
-  const left = Math.min(window.innerWidth - 195, Math.max(20, rect.left + 99));
-  const top = Math.max(20, rect.top - 104);
+  const left = Math.min(window.innerWidth - 235, Math.max(20, rect.left + 99));
+  const top = Math.max(20, rect.top - 122);
 
   openModal(`
     <div class="media-delete-dialog">
@@ -1357,6 +1380,36 @@ function openMediaDeleteConfirmation(trigger) {
     closeModal();
     render();
     showToast("Medien gelöscht");
+  });
+}
+
+function openMembershipDeleteConfirmation(trigger) {
+  const selectedMembershipKeys = [...state.selectedMembershipKeys];
+  if (selectedMembershipKeys.length === 0) return;
+  const rect = trigger.getBoundingClientRect();
+  const left = Math.min(window.innerWidth - 235, Math.max(20, rect.left + 99));
+  const top = Math.max(20, rect.top - 122);
+
+  openModal(`
+    <div class="media-delete-dialog">
+      <p>Möchten Sie diese Mitgliedschaft wirklich löschen?</p>
+      <div class="media-delete-actions">
+        <button type="button" data-confirm-membership-delete>Ja</button>
+        <button type="button" data-close-modal>Nein</button>
+      </div>
+    </div>
+  `);
+  modal.className = "modal media-delete-confirm";
+  modal.style.setProperty("--media-delete-left", `${Math.round(left)}px`);
+  modal.style.setProperty("--media-delete-top", `${Math.round(top)}px`);
+  modalLayer.classList.add("media-delete-layer");
+  modal.querySelector("[data-close-modal]").addEventListener("click", closeModal);
+  modal.querySelector("[data-confirm-membership-delete]").addEventListener("click", () => {
+    selectedMembershipKeys.forEach((key) => state.deletedMembershipKeys.add(key));
+    state.selectedMembershipKeys.clear();
+    closeModal();
+    render();
+    showToast("Mitgliedschaft gelöscht");
   });
 }
 
@@ -1713,8 +1766,8 @@ function openObjectPicker(trigger = null) {
     ["Wimpernserum 5 ml", "Augen", "product"],
     ["Maniküre Deluxe", "Hände", "treatment"]
   ];
-  const isMembershipSelection = Boolean(trigger?.closest(".membership-products-field"));
-  const visibleObjects = isMembershipSelection
+  const isProductListSelection = Boolean(trigger?.closest(".membership-products-field, .package-products-field"));
+  const visibleObjects = isProductListSelection
     ? objects.filter(([, , type]) => type === "treatment" || type === "product")
     : objects;
 
@@ -1756,25 +1809,29 @@ function openObjectPicker(trigger = null) {
           return;
         }
 
-        trigger.dataset.selectedObject = item.dataset.objectName;
-        const productField = trigger.closest(".membership-products-field");
-        const productList = productField?.querySelector(".list-editor-items");
-        if (productList) {
-          const row = document.createElement("div");
-          row.className = "list-editor-item";
-          row.innerHTML = `<img src="./assets/treatment-card.png" alt="" /><span>${escapeHtml(item.dataset.objectName)}</span><button type="button" aria-label="${escapeHtml(item.dataset.objectName)} entfernen" data-remove-list-item><i data-lucide="x"></i></button>`;
-          productList.appendChild(row);
-          row.querySelector("[data-remove-list-item]").addEventListener("click", () => {
-            row.remove();
-            markDirty();
-          });
-          createIcons(row);
-        } else {
-          const label = trigger.querySelector("[data-object-selection-label]");
-          if (label) {
-            label.textContent = item.dataset.objectName;
-            trigger.classList.add("has-selection");
-          }
+        const selectedName = item.dataset.objectName;
+        if (trigger.closest(".package-products-field")) {
+          state.packageProducts.push(selectedName);
+          markDirty();
+          closeModal();
+          render();
+          showToast(`${selectedName} hinzugefügt`);
+          return;
+        }
+        if (trigger.closest(".membership-products-field")) {
+          state.membershipProducts.push(selectedName);
+          markDirty();
+          closeModal();
+          render();
+          showToast(`${selectedName} hinzugefügt`);
+          return;
+        }
+
+        trigger.dataset.selectedObject = selectedName;
+        const label = trigger.querySelector("[data-object-selection-label]");
+        if (label) {
+          label.textContent = selectedName;
+          trigger.classList.add("has-selection");
         }
       }
       markDirty();
@@ -1855,6 +1912,36 @@ function bindPageEvents() {
       render();
     });
   }
+
+  const membershipSelectionInputs = [...document.querySelectorAll("[data-membership-select]")];
+  const membershipSelectAll = document.querySelector("#membershipSelectAll");
+  const membershipTableShell = document.querySelector(".membership-table-shell");
+  const membershipSelectionActions = document.querySelector(".membership-selection-actions");
+  const membershipDeleteButton = document.querySelector("[data-membership-delete]");
+  if (membershipSelectionInputs.length && membershipSelectAll && membershipTableShell && membershipSelectionActions) {
+    const updateMembershipSelection = () => {
+      const selectedCount = membershipSelectionInputs.filter((checkbox) => checkbox.checked).length;
+      state.selectedMembershipKeys.clear();
+      membershipSelectionInputs.forEach((checkbox) => {
+        if (checkbox.checked) state.selectedMembershipKeys.add(checkbox.dataset.membershipSelect);
+        checkbox.closest("tr")?.classList.toggle("is-selected", checkbox.checked);
+      });
+      membershipSelectionActions.hidden = selectedCount === 0;
+      membershipTableShell.classList.toggle("is-selecting", selectedCount > 0);
+      membershipSelectAll.checked = selectedCount === membershipSelectionInputs.length;
+      membershipSelectAll.indeterminate = selectedCount > 0 && selectedCount < membershipSelectionInputs.length;
+    };
+
+    membershipSelectionInputs.forEach((checkbox) => checkbox.addEventListener("change", updateMembershipSelection));
+    membershipSelectAll.addEventListener("change", () => {
+      membershipSelectionInputs.forEach((checkbox) => {
+        checkbox.checked = membershipSelectAll.checked;
+      });
+      updateMembershipSelection();
+    });
+    updateMembershipSelection();
+  }
+  membershipDeleteButton?.addEventListener("click", () => openMembershipDeleteConfirmation(membershipDeleteButton));
 
   const orderStatusButton = document.querySelector("#orderStatusButton");
   const orderStatusMenu = document.querySelector("#orderStatusMenu");
@@ -2078,10 +2165,24 @@ function bindPageEvents() {
       render();
     });
   });
-  document.querySelectorAll(".list-editor-item > button").forEach((button) => {
+  document.querySelectorAll(".list-editor-item > button:not([data-remove-package-product-index]):not([data-remove-membership-product-index])").forEach((button) => {
     button.addEventListener("click", () => {
       button.closest(".list-editor-item")?.remove();
       markDirty();
+    });
+  });
+  document.querySelectorAll("[data-remove-package-product-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.packageProducts.splice(Number(button.dataset.removePackageProductIndex), 1);
+      markDirty();
+      render();
+    });
+  });
+  document.querySelectorAll("[data-remove-membership-product-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.membershipProducts.splice(Number(button.dataset.removeMembershipProductIndex), 1);
+      markDirty();
+      render();
     });
   });
 
@@ -2142,11 +2243,28 @@ function bindPageEvents() {
   const addBenefit = document.querySelector("[data-add-benefit]");
   if (addBenefit) {
     addBenefit.addEventListener("click", () => {
-      const input = addBenefit.previousElementSibling.querySelector("input");
-      if (input) input.focus();
+      if (state.membershipBenefits.length >= 3) return;
+      state.membershipBenefits.push("");
       markDirty();
+      render();
+      document.querySelector(`[data-membership-benefit-index="${state.membershipBenefits.length - 1}"]`)?.focus();
     });
   }
+  document.querySelectorAll("[data-membership-benefit-index]").forEach((input) => {
+    input.addEventListener("input", () => {
+      state.membershipBenefits[Number(input.dataset.membershipBenefitIndex)] = input.value;
+      input.closest(".membership-benefit-row")?.classList.toggle("empty", input.value.length === 0);
+      markDirty();
+    });
+  });
+  document.querySelectorAll("[data-remove-benefit-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (state.membershipBenefits.length <= 2) return;
+      state.membershipBenefits.splice(Number(button.dataset.removeBenefitIndex), 1);
+      markDirty();
+      render();
+    });
+  });
 
   const addTag = document.querySelector("#addTag");
   const newTag = document.querySelector("#newTag");

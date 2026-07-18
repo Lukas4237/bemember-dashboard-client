@@ -118,7 +118,7 @@ svg {
   height: 100vh;
   overflow-y: auto;
   background: var(--surface);
-  border-right: 1px solid #f3f3f3;
+  border-right: 0;
 }
 
 .brand {
@@ -623,7 +623,7 @@ svg {
 }
 
 .list-add-button {
-  box-shadow: inset 0 4px 3.9px rgba(255, 255, 255, 0.47), 0 4px 7.3px rgba(0, 0, 0, 0.02);
+  box-shadow: inset 0 4px 3.9px rgba(255, 255, 255, 0.47), 0 4px 14.6px rgba(0, 0, 0, 0.02);
 }
 
 .button.primary {
@@ -631,8 +631,23 @@ svg {
   color: #fff;
 }
 
+.button.primary:not(:disabled) {
+  box-shadow: inset 0 4px 3.9px rgba(255, 255, 255, 0.47), 0 4px 14.6px rgba(0, 0, 0, 0.02);
+  transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
 .button.primary:hover {
   background: var(--pink-hover);
+}
+
+.button.primary:not(:disabled):active {
+  box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.28), 0 2px 7px rgba(0, 0, 0, 0.03);
+  transform: translateY(1px);
+}
+
+.button.primary:disabled,
+.date-range-actions .button.primary {
+  box-shadow: none;
 }
 
 .button.secondary {
@@ -1038,14 +1053,14 @@ svg {
 
 .metric-strip {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 9px;
   margin-bottom: 8px;
 }
 
 .metric-card {
   min-width: 0;
-  height: 40px;
+  height: 58px;
   padding: 7px 9px;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -1070,7 +1085,11 @@ svg {
 .metric-card span {
   margin-top: 1px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 11px;
+  line-height: 13px;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .metric-card:hover {
@@ -1259,7 +1278,7 @@ svg {
 
 .order-detail-page {
   position: relative;
-  padding-top: 24px;
+  padding-top: 23px;
 }
 
 .order-detail-page .detail-layout {
@@ -1268,63 +1287,66 @@ svg {
 
 .order-detail-page .back-button {
   height: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
   line-height: 12px;
 }
 
 .order-detail-page .order-detail-toolbar {
   display: block;
-  min-height: 43px;
-  margin-bottom: 10px;
+  min-height: 54px;
+  height: 54px;
+  margin-bottom: 9px;
 }
 
 .order-detail-toolbar > .select-field {
   position: absolute;
-  top: 27px;
+  top: 23px;
   right: 0;
-  width: 132px;
-  height: 28px;
-  border-radius: 7px;
-  font-size: 11px;
+  width: 99px;
+  height: 20px;
+  border-radius: 5px;
+  font-size: 9px;
 }
 
 .order-detail-toolbar > .custom-select.select-field .custom-select__button {
-  justify-content: center;
-  padding: 0 30px 0 16px;
-  border-radius: 7px;
-  font-size: 11px;
+  justify-content: flex-start;
+  padding: 0 33px 0 24px;
+  border-radius: 5px;
+  font-size: 9px;
 }
 
 .order-detail-toolbar > .custom-select.select-field .custom-select__button svg {
-  right: 13px;
-  width: 13px;
-  height: 13px;
+  right: 24px;
+  width: 9px;
+  height: 9px;
 }
 
 .order-detail-toolbar > .custom-select.select-field .custom-select__menu {
-  top: calc(100% + 5px);
+  top: calc(100% + 2px);
   padding: 0;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 .order-detail-toolbar > .custom-select.select-field .custom-select__option {
-  height: 38px;
-  padding: 0 18px;
-  font-size: 11px;
-  line-height: 38px;
+  height: 20px;
+  padding: 0 10px;
+  font-size: 9px;
+  line-height: 20px;
+  text-align: center;
 }
 
 .order-detail-heading {
-  display: grid;
-  gap: 1px;
+  display: block;
+  height: 54px;
   color: var(--blue);
 }
 
 .order-id-row {
   display: flex;
   align-items: center;
-  gap: 5px;
-  min-height: 17px;
+  gap: 3px;
+  min-height: 16px;
+  height: 16px;
 }
 
 .order-number {
@@ -1346,51 +1368,106 @@ svg {
   color: #fff;
   font-size: 7px;
   font-weight: 600;
-  line-height: 9px;
+  line-height: 11px;
 }
 
 .order-paid-at,
 .order-timestamp {
+  display: inline-block;
   color: var(--blue);
-  font-size: 7px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 10px;
+  line-height: 16.392px;
+}
+
+.order-metadata {
+  display: grid;
+  grid-template-rows: repeat(2, 16px);
+  gap: 2px;
+  width: 207px;
+  height: 34px;
+  margin: 4px 0 0 1px;
 }
 
 .order-timestamp {
   width: max-content;
-  min-height: 10px;
-  margin: 0 0 1px 1px;
+  min-height: 16px;
+  margin: 0;
 }
 
 .order-products-card {
   height: 168px;
-  padding: 15px;
+  padding: 14px;
 }
 
 .order-products-card .order-lines {
   gap: 8px;
 }
 
+.order-products-card .order-line {
+  grid-template-columns: 30px 208px 153px 42px;
+  gap: 11px;
+  font-size: 12px;
+  line-height: 16.392px;
+}
+
+.order-products-card .order-line > :last-child,
+.order-products-card .summary-line > :last-child {
+  justify-self: end;
+  width: max-content;
+}
+
 .order-products-card .summary-lines {
-  padding-top: 8px;
+  padding-top: 7px;
+}
+
+.order-products-card .summary-line {
+  grid-template-columns: 249px 148px 47px;
+  gap: 11px;
+  font-size: 12px;
+  line-height: 16.392px;
 }
 
 .order-summary-card {
   height: 150px;
   margin-top: 10px;
-  padding: 15px;
+  padding: 14px;
 }
 
 .order-summary-card .summary-lines {
-  gap: 8px;
+  gap: 7.608px;
   padding-top: 0;
   border-top: 0;
 }
 
+.order-summary-card .summary-line {
+  grid-template-columns: 164px 226px 56px;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 16.392px;
+}
+
+.order-summary-card .summary-line > :last-child {
+  justify-self: end;
+  width: max-content;
+}
+
+.order-summary-card .summary-line:last-child {
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+
 .order-customer-card {
   height: 328px;
-  padding: 19px;
+  padding: 20px 18px;
+}
+
+.order-customer-card p {
+  margin-bottom: 15.608px;
+}
+
+.order-customer-card p:last-child {
+  margin-bottom: 0;
 }
 
 .order-note-box {
@@ -1427,7 +1504,7 @@ svg {
   min-height: 20px;
   height: 20px;
   padding: 0;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .order-note-box #saveNote,
@@ -1498,9 +1575,11 @@ svg {
 }
 
 .reward-editor-page .back-button {
+  width: 64px;
   height: 15px;
   margin-bottom: 10px;
   margin-left: 1px;
+  font-size: 11px;
 }
 
 .reward-editor-page .editor-toolbar {
@@ -1527,30 +1606,30 @@ svg {
 }
 
 .reward-editor-page .editor-status {
-  flex: 0 0 64px;
-  width: 64px;
+  flex: 0 0 70px;
+  width: 70px;
   height: 20px;
   margin: 0 0 0 11px;
   padding: 0 9px;
 }
 
 .reward-editor-page [data-delete-object] {
-  flex: 0 0 70px;
-  width: 70px;
-  min-height: 20px;
-  height: 20px;
+  flex: 0 0 88px;
+  width: 88px;
+  min-height: 24px;
+  height: 24px;
   margin-left: 13px;
   padding: 0 10px;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .reward-editor-page #editorSave {
   align-self: center;
-  width: 71px;
-  min-height: 20px;
-  height: 20px;
+  width: 94px;
+  min-height: 24px;
+  height: 24px;
   padding: 0 10px;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .reward-editor-page #editorSave:disabled {
@@ -1580,22 +1659,22 @@ svg {
 }
 
 .product-editor-page [data-delete-object] {
-  flex: 0 0 70px;
-  width: 70px;
-  min-height: 20px;
-  height: 20px;
+  flex: 0 0 88px;
+  width: 88px;
+  min-height: 24px;
+  height: 24px;
   margin-left: 13px;
   padding: 0 10px;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .product-editor-page #editorSave {
   align-self: center;
-  width: 71px;
-  min-height: 20px;
-  height: 20px;
+  width: 94px;
+  min-height: 24px;
+  height: 24px;
   padding: 0 10px;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .editor-title-row {
@@ -1646,6 +1725,10 @@ svg {
 
 .product-content-card {
   min-height: 261px;
+}
+
+.product-content-card.has-package-fields {
+  min-height: 382px;
 }
 
 .product-pricing-card {
@@ -1722,6 +1805,38 @@ svg {
   margin-top: 10px;
 }
 
+.package-fields-label label {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 12px;
+}
+
+.package-products-field .list-editor-items {
+  width: 225px;
+  margin-top: 10px;
+  gap: 4px;
+}
+
+.package-products-field .list-editor-item {
+  grid-template-columns: 29px minmax(0, 1fr) 16px;
+  min-height: 29px;
+  gap: 7px;
+}
+
+.package-products-field .list-editor-item img {
+  width: 29px;
+  height: 29px;
+}
+
+.package-products-field .soft-action {
+  width: 225px;
+  min-height: 22px;
+  height: 22px;
+  margin-top: 4px;
+}
+
 .product-tags-card h2 {
   margin: 0 0 10px;
   color: var(--muted);
@@ -1763,7 +1878,45 @@ svg {
 }
 
 .membership-page .table-shell {
+  position: relative;
   height: 137px;
+  overflow: hidden;
+}
+
+.membership-selection-actions {
+  position: absolute;
+  top: 6px;
+  left: 41px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+}
+
+.membership-selection-actions[hidden] {
+  display: none;
+}
+
+.button.compact.membership-delete-button {
+  box-sizing: border-box;
+  width: 86px;
+  min-height: 24px;
+  height: 24px;
+  padding: 0 9px;
+  gap: 5px;
+  border-radius: 7px;
+  background: #e93d3d;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.membership-delete-button svg {
+  width: 11px;
+  height: 11px;
+}
+
+.membership-table-shell.is-selecting thead th:not(.checkbox-cell) {
+  color: transparent;
+  background: #fff;
 }
 
 .membership-page .data-table th,
@@ -1809,11 +1962,11 @@ svg {
 }
 
 .membership-editor-toolbar #editorSave {
-  width: 71px;
-  min-height: 20px;
-  height: 20px;
+  width: 94px;
+  min-height: 24px;
+  height: 24px;
   padding: 0 10px;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .membership-editor-grid {
@@ -1923,6 +2076,8 @@ svg {
   border: 0 !important;
   outline: 0;
   font-size: 9px;
+  color: var(--ink);
+  background: transparent;
 }
 
 .membership-benefit-row button {
@@ -1946,6 +2101,12 @@ svg {
   min-height: 22px;
   height: 22px;
   margin-top: 5px;
+}
+
+.membership-benefits-field .soft-action:disabled {
+  background: rgba(251, 113, 133, 0.08);
+  color: #c99aa1;
+  opacity: 1;
 }
 
 .membership-price-grid.field-grid.three {
@@ -1983,11 +2144,11 @@ svg {
 
 .membership-price-grid .field:nth-child(1) .membership-value,
 .membership-price-grid .field:nth-child(2) .membership-value {
-  width: 68px;
+  width: 90px;
 }
 
 .membership-price-grid .field:nth-child(3) .membership-value {
-  width: 38px;
+  width: 46px;
 }
 
 .membership-products-field {
@@ -2233,7 +2394,7 @@ svg {
 
 .membership-section-preview {
   width: 249px;
-  height: 91px;
+  height: 116px;
   padding: 17px 15px;
   border-radius: 9px;
   background: #fff;
@@ -2256,12 +2417,12 @@ svg {
 .membership-section-preview p {
   margin: 6px 0;
   color: #858585;
-  font-size: 7px;
+  font-size: 11px;
   line-height: 1.35;
 }
 
 .membership-section-preview a {
-  font-size: 7px;
+  font-size: 11px;
   text-decoration: none;
 }
 
@@ -2582,6 +2743,10 @@ svg {
   font-weight: 500;
 }
 
+.media-library-add:not(:disabled) {
+  box-shadow: inset 0 4px 3.9px rgba(255, 255, 255, 0.47), 0 4px 14.6px rgba(0, 0, 0, 0.02);
+}
+
 .media-library-add:disabled {
   background: #bebebe;
   opacity: 1;
@@ -2759,60 +2924,61 @@ svg {
 }
 
 .modal.object-picker-modal {
-  width: 236px;
-  height: 255px;
+  width: 310px;
+  height: 386px;
   max-height: calc(100vh - 40px);
   overflow: hidden;
-  border-radius: 7px;
+  border-radius: 8px;
   background: #fcfcfc;
 }
 
 .object-picker-dialog {
   width: 100%;
   height: 100%;
-  padding: 6px 7px;
+  padding: 10px;
 }
 
 .object-picker-search {
   position: relative;
   display: flex;
   align-items: center;
-  width: 222px;
-  height: 25px;
+  width: 290px;
+  height: 34px;
 }
 
 .object-picker-search svg {
   position: absolute;
-  left: 9px;
-  width: 9px;
-  height: 9px;
+  left: 11px;
+  width: 13px;
+  height: 13px;
   color: #7d7d7d;
 }
 
 .object-picker-search input {
   width: 100%;
   height: 100%;
-  padding: 0 8px 0 25px;
+  padding: 0 11px 0 34px;
   border: 1px solid #e8e8e8;
   border-radius: 7px;
   outline: 0;
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .object-picker-list {
   display: grid;
-  width: 222px;
-  margin-top: 4px;
+  width: 290px;
+  row-gap: 6px;
+  margin-top: 8px;
 }
 
 .object-picker-item {
   display: grid;
-  grid-template-columns: 29px minmax(0, 1fr);
-  gap: 7px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
-  width: 222px;
-  height: 29px;
+  width: 290px;
+  height: 40px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -2827,8 +2993,8 @@ svg {
 }
 
 .object-picker-item img {
-  width: 29px;
-  height: 29px;
+  width: 40px;
+  height: 40px;
   border-radius: 5px;
   object-fit: cover;
 }
@@ -2842,7 +3008,7 @@ svg {
 
 .object-picker-item strong {
   overflow: hidden;
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2851,7 +3017,7 @@ svg {
 .object-picker-item small {
   margin-top: 2px;
   color: #7d7d7d;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 [data-object-selection-label] {
@@ -2887,16 +3053,16 @@ svg {
 }
 
 .reward-basic-card {
-  height: 152px;
+  height: 166px;
 }
 
 .reward-basic-card.has-selected-object {
-  height: 163px;
+  height: 173px;
 }
 
 .reward-dates-card {
   position: relative;
-  height: 179px;
+  height: 182px;
 }
 
 .reward-recipient-card {
@@ -2904,16 +3070,16 @@ svg {
 }
 
 .reward-recipient-card.is-selected {
-  height: 359px;
+  height: 363px;
   overflow: hidden;
 }
 
 .reward-message-card {
-  height: 195px;
+  height: 207px;
 }
 
 .reward-preview-card {
-  height: 223px;
+  height: 229px;
 }
 
 .reward-dates-card h2,
@@ -2927,7 +3093,7 @@ svg {
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
-  width: 179px;
+  width: 215px;
   height: 32px;
   padding: 3px;
   overflow: hidden;
@@ -2937,7 +3103,7 @@ svg {
 
 .recipient-toggle button {
   flex: 0 0 auto;
-  width: 71px;
+  width: 85px;
   height: 26px;
   padding: 0 10px;
   border: 0;
@@ -2952,7 +3118,7 @@ svg {
 }
 
 .recipient-toggle button + button {
-  width: 102px;
+  width: 124px;
 }
 
 .recipient-toggle button.is-active {
@@ -3109,7 +3275,7 @@ svg {
 }
 
 .reward-product-row .button {
-  width: 89px;
+  width: 106px;
   min-height: 22px;
   height: 22px;
   padding: 0 10px;
@@ -3161,13 +3327,13 @@ svg {
 }
 
 .reward-discount-row > label {
-  width: 62px;
+  width: 84px;
 }
 
 .reward-discount-input {
   display: flex;
   align-items: center;
-  width: 43px;
+  width: 49px;
   height: 22px;
   padding: 0 6px;
   border: 1px solid var(--line-strong);
@@ -3177,7 +3343,7 @@ svg {
 
 .reward-discount-input input {
   min-width: 0;
-  width: 20px;
+  width: 26px;
   height: 20px;
   padding: 0;
   border: 0;
@@ -3237,11 +3403,11 @@ svg {
 }
 
 .reward-repeat-row label {
-  width: 84px;
+  width: 112px;
 }
 
 .reward-repeat-row select {
-  width: 79px;
+  width: 100px;
   height: 20px;
   border: 1px solid var(--line-strong);
   border-radius: 5px;
@@ -3259,6 +3425,30 @@ svg {
   height: 180px;
   object-fit: fill;
   border-radius: 7px;
+}
+
+/* The dashboard form was authored at 9px. Keep its geometry, but use the
+   requested 11px text size for readable labels and controls on this route. */
+.reward-editor-page .field label,
+.reward-editor-page .back-button,
+.reward-editor-page .button.compact,
+.reward-editor-page .field-label,
+.reward-editor-page .field input,
+.reward-editor-page .field select,
+.reward-editor-page .field textarea,
+.reward-editor-page .reward-product-row,
+.reward-editor-page .reward-discount-row,
+.reward-editor-page .reward-repeat-row,
+.reward-editor-page .reward-discount-input input,
+.reward-editor-page .reward-repeat-row select,
+.reward-editor-page .reward-selected-object span,
+.reward-editor-page .recipient-toggle button,
+.reward-editor-page .recipient-selection-count,
+.reward-editor-page .recipient-search input,
+.reward-editor-page .recipient-customer-row,
+.reward-editor-page .custom-select__button,
+.reward-editor-page .custom-select__option {
+  font-size: 11px;
 }
 
 .editor-stack {
@@ -3320,7 +3510,7 @@ svg {
   align-items: flex-start;
   gap: 5px;
   color: #979797;
-  font-size: 7px;
+  font-size: 11px;
   line-height: 1.35;
 }
 
@@ -3364,14 +3554,16 @@ svg {
   border: 1px solid #a7a7a7;
   border-radius: 3px;
   background: #fff;
-  background-position: center;
+  /* The check path has more visual weight below its SVG midpoint. Lift it
+     slightly so the painted mark, not just the 12px viewBox, is centered. */
+  background-position: 50% calc(50% - 0.75px);
   background-repeat: no-repeat;
   background-size: 10px 10px;
 }
 
 .product-pricing-card .checkbox-row input:checked {
   border-color: var(--blue);
-  background: var(--blue);
+  background-color: var(--blue);
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2012%2012%27%3E%3Cpath%20d%3D%27M2.4%206.2%204.9%208.7%209.8%203.4%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27/%3E%3C/svg%3E");
 }
 
@@ -3384,14 +3576,27 @@ svg {
 }
 
 .product-pricing-card .field-help {
+  align-items: center;
   width: 224px;
   max-width: 100%;
-  gap: 6px;
+  gap: 4px;
+  color: #a0a0a0;
+  font-size: 7px;
   font-weight: 600;
+  line-height: 9.562px;
+}
+
+.product-pricing-card .field-help svg {
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  margin-top: 0;
+  transform: translateY(0.5px);
 }
 
 .product-pricing-card .field-help span {
   display: block;
+  width: 212px;
   min-width: 0;
 }
 
@@ -3424,7 +3629,7 @@ svg {
 }
 
 .product-discount-fields .field-help {
-  margin-top: 6px;
+  margin-top: 3px;
 }
 
 .product-discount-fields + .checkbox-row {
@@ -3576,7 +3781,7 @@ svg {
 
 .phone-preview {
   max-width: 260px;
-  min-height: 466px;
+  min-height: 500px;
   margin: 0 auto;
   padding: 20px 18px;
   border-radius: 12px;
@@ -3598,7 +3803,7 @@ svg {
 .phone-preview p {
   margin: 0 0 16px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 11px;
   line-height: 1.35;
 }
 
@@ -3610,7 +3815,7 @@ svg {
 }
 
 .phone-product {
-  flex: 0 0 92px;
+  flex: 0 0 112px;
   overflow: hidden;
   border-radius: 7px;
   background: #fff;
@@ -3630,7 +3835,7 @@ svg {
 .phone-product strong,
 .phone-product span {
   display: block;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .phone-product span {
@@ -3659,11 +3864,11 @@ svg {
   position: relative;
   top: -7px;
   right: 2px;
-  width: 71px;
-  min-height: 20px;
-  height: 20px;
+  width: 94px;
+  min-height: 24px;
+  height: 24px;
   padding: 0 10px;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .page-settings .settings-save:disabled {
@@ -3986,7 +4191,19 @@ svg {
 }
 
 .settings-points-grid .field-help {
+  width: 208px;
   margin-top: 7px;
+  gap: 4px;
+  color: #a0a0a0;
+  font-size: 7px;
+  font-weight: 600;
+  line-height: 9.562px;
+}
+
+.settings-points-grid .field-help svg {
+  width: 8px;
+  height: 8px;
+  margin-top: 1px;
 }
 
 .settings-contact-card {
@@ -4268,14 +4485,14 @@ svg {
 
 .button.compact.media-delete-button {
   box-sizing: border-box;
-  width: 70px;
-  min-height: 20px;
-  height: 20px;
+  width: 82px;
+  min-height: 24px;
+  height: 24px;
   padding: 0 8px;
   border-radius: 7px;
   background: #e93d3d;
   gap: 4px;
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
 }
@@ -4403,7 +4620,7 @@ svg {
 }
 
 .payout-card {
-  min-height: 40px;
+  min-height: 50px;
   padding: 7px 10px;
   border: 0.5px solid var(--line-strong);
   border-radius: 7px;
@@ -4427,7 +4644,7 @@ svg {
 
 .payout-card span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .payout-bank-card {
@@ -4435,7 +4652,7 @@ svg {
   align-items: flex-start;
   width: 466px;
   max-width: 100%;
-  min-height: 40px;
+  min-height: 50px;
   padding: 7px 7px 7px 10px;
   border: 0.5px solid var(--line-strong);
   border-radius: 7px;
@@ -4448,7 +4665,7 @@ svg {
   gap: 9px;
   width: 326px;
   min-width: 0;
-  height: 26px;
+  height: 34px;
 }
 
 .payout-bank-meta > svg {
@@ -4478,7 +4695,7 @@ svg {
 .payout-bank-meta small {
   width: 144px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .payout-bank-card button {
@@ -4605,8 +4822,8 @@ svg {
   position: fixed;
   top: var(--media-delete-top);
   left: var(--media-delete-left);
-  width: 175px;
-  height: 82px;
+  width: 215px;
+  height: 102px;
   max-height: none;
   overflow: hidden;
   border-radius: 7px;
@@ -4617,38 +4834,38 @@ svg {
 .media-delete-dialog {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   height: 100%;
-  padding: 14px 10px;
+  padding: 16px 12px;
 }
 
 .media-delete-dialog p {
-  width: 156px;
+  width: 190px;
   margin: 0;
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 12px;
+  line-height: 15px;
   text-align: center;
 }
 
 .media-delete-actions {
   display: grid;
-  grid-template-columns: repeat(2, 47px);
+  grid-template-columns: repeat(2, 55px);
   gap: 8px;
 }
 
 .media-delete-actions button {
-  width: 47px;
-  height: 20px;
+  width: 55px;
+  height: 24px;
   padding: 0;
   border: 0;
   border-radius: 7px;
   background: #9a9a9a;
   color: #fff;
   font: inherit;
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 600;
 }
 
