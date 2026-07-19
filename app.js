@@ -57,13 +57,23 @@ const customers = Array.from({ length: 16 }, () => ({
   messages: "34"
 }));
 
-const rewards = Array.from({ length: 16 }, () => ({
-  title: "Title only goes so long as possible..",
-  status: "Aktiv",
-  period: "11.02.2026-15.02.2026",
-  repeat: "Einmalig",
-  product: "Mundsalbengel"
-}));
+const REWARD_PAGE_COUNT = 47;
+const REWARDS_PER_PAGE = 16;
+const rewards = Array.from({ length: REWARD_PAGE_COUNT * REWARDS_PER_PAGE }, (_, index) => {
+  const page = Math.floor(index / REWARDS_PER_PAGE) + 1;
+  const row = (index % REWARDS_PER_PAGE) + 1;
+  const statuses = ["Aktiv", "Aktiv", "Inaktiv"];
+  const products = ["Mundsalbengel", "Wimpernbehandlung", "Hautpflege Deluxe"];
+  return {
+    title: page === 1
+      ? "Title only goes so long as possible.."
+      : `Belohnung ${String(page).padStart(2, "0")}-${String(row).padStart(2, "0")}`,
+    status: statuses[index % statuses.length],
+    period: "11.02.2026-15.02.2026",
+    repeat: row % 4 === 0 ? "Monatlich" : "Einmalig",
+    product: products[index % products.length]
+  };
+});
 
 const products = Array.from({ length: 12 }, () => ({
   name: "Wimpernbehandlung",
@@ -105,6 +115,7 @@ const state = {
   appNavOpen: false,
   dirty: false,
   activeRewardStatus: "Aktiv",
+  rewardPage: 1,
   rewardRecipient: "all",
   rewardRecipientCustomerKeys: new Set(["recipient-0"]),
   messageRecipient: "all",
@@ -120,7 +131,16 @@ const state = {
   deletedMediaKeys: new Set(),
   selectedMembershipKeys: new Set(),
   deletedMembershipKeys: new Set(),
-  membershipBenefits: [memberships[0].benefits[0], ""],
+  membershipDraft: {
+    title: "Mehr Ersparnis als Beitrag: Das Abo, das sich selbst trägt.",
+    description: "Zahlt sich von alleine ab: Spare bei jeder Session und maximiere Deine Ergebnisse. Mindestens 6 Monate für besten Erfolg.",
+    monthlyPrice: "99",
+    cta: "Jetzt über 100 € im Jahr sparen",
+    homeTitle: "Spare 100€+ im Jahr",
+    homeDescription: "Sichere dir exklusive Vorteile & Rabatte als Mitglied bei uns.",
+    homeCta: "Zu den Vorteilen"
+  },
+  membershipBenefits: [...memberships[0].benefits],
   packageProducts: ["Wimpernbehandlung", "Hautpflege Deluxe", "Wimpernserum 5 ml"],
   membershipProducts: Array.from({ length: 4 }, () => "Beinhaarbehandlung mit Salbe und Gurken"),
   customerPointBalances: new Map([["Marlon Hedwig", 1250]]),
@@ -509,7 +529,28 @@ function renderCustomerDetail() {
   `;
 }
 
+function rewardPaginationItems(currentPage, pageCount) {
+  const visiblePages = currentPage <= 4
+    ? [1, 2, 3, 4, 5, pageCount]
+    : currentPage >= pageCount - 3
+      ? [1, pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount]
+      : [1, currentPage - 1, currentPage, currentPage + 1, pageCount];
+  const pages = [...new Set(visiblePages)]
+    .filter((page) => page >= 1 && page <= pageCount)
+    .sort((left, right) => left - right);
+
+  return pages.flatMap((page, index) => {
+    if (index === 0 || page - pages[index - 1] === 1) return [page];
+    return [null, page];
+  });
+}
+
 function renderRewards() {
+  state.rewardPage = Math.min(Math.max(state.rewardPage, 1), REWARD_PAGE_COUNT);
+  const rewardPageStart = (state.rewardPage - 1) * REWARDS_PER_PAGE;
+  const pageRewards = rewards.slice(rewardPageStart, rewardPageStart + REWARDS_PER_PAGE);
+  const paginationItems = rewardPaginationItems(state.rewardPage, REWARD_PAGE_COUNT);
+
   return `
     <section class="page rewards-page">
       ${pageHeader("Belohnungen")}
@@ -525,19 +566,22 @@ function renderRewards() {
           </colgroup>
           <thead><tr><th class="checkbox-cell"><input type="checkbox" aria-label="Alle auswählen" /></th><th>Titel</th><th>Status</th><th>Einlösbar von/bis</th><th>Wiederholungsrate</th><th>Behandlung/Produkt</th></tr></thead>
           <tbody>
-            ${rewards.map((reward, index) => `
+            ${pageRewards.map((reward, index) => `
               <tr data-row-route="belohnung-editor" class="${index === 0 ? "is-selected" : ""}">
-                ${checkboxCell()}<td title="${reward.title}">${reward.title}</td><td>${reward.status}</td>
-                <td>${reward.period}</td><td>${reward.repeat}</td><td>${reward.product}</td>
+                ${checkboxCell()}<td title="${escapeHtml(reward.title)}">${escapeHtml(reward.title)}</td><td>${escapeHtml(reward.status)}</td>
+                <td>${escapeHtml(reward.period)}</td><td>${escapeHtml(reward.repeat)}</td><td>${escapeHtml(reward.product)}</td>
               </tr>
             `).join("")}
           </tbody>
         </table>
       </div>
-      <nav class="figma-pagination rewards-pagination" aria-label="Belohnungen Seiten">
-        <button type="button" aria-label="Vorherige Seite"><i data-lucide="chevron-left"></i></button>
-        <span class="is-active">1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>...</span><span>47</span>
-        <button type="button" aria-label="Nächste Seite"><i data-lucide="chevron-right"></i></button>
+      <nav class="figma-pagination rewards-pagination" aria-label="Belohnungen Seitennavigation">
+        <button type="button" data-reward-page-prev aria-label="Vorherige Seite" ${state.rewardPage === 1 ? "disabled" : ""}><i data-lucide="chevron-left"></i></button>
+        ${paginationItems.map((page) => page === null
+          ? `<span class="pagination-ellipsis" aria-hidden="true">…</span>`
+          : `<button type="button" data-reward-page="${page}" class="${page === state.rewardPage ? "is-active" : ""}" aria-label="Seite ${page}" ${page === state.rewardPage ? `aria-current="page"` : ""}>${page}</button>`
+        ).join("")}
+        <button type="button" data-reward-page-next aria-label="Nächste Seite" ${state.rewardPage === REWARD_PAGE_COUNT ? "disabled" : ""}><i data-lucide="chevron-right"></i></button>
       </nav>
     </section>
   `;
@@ -834,6 +878,7 @@ function renderMemberships() {
 }
 
 function renderMembershipEditor() {
+  const draft = state.membershipDraft;
   return `
     <section class="page membership-editor-page">
       <button class="back-button" type="button" data-navigate="mitgliedschaft"><i data-lucide="chevron-left"></i>Zurück</button>
@@ -844,8 +889,8 @@ function renderMembershipEditor() {
       <form class="editor-grid membership-editor-grid" data-editor-form>
         <div class="editor-stack">
           <section class="editor-card membership-main-card">
-            <div class="field membership-title-field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
-            <div class="field membership-description-field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
+            <div class="field membership-title-field"><label>Titel</label><input type="text" value="${escapeHtml(draft.title)}" placeholder="Titel hinzufügen..." data-membership-draft-field="title" /></div>
+            <div class="field membership-description-field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..." data-membership-draft-field="description">${escapeHtml(draft.description)}</textarea></div>
             <div class="field membership-benefits-field">
               <label>Vorteilspunkte</label>
               ${state.membershipBenefits.map((benefit, index) => `
@@ -857,7 +902,7 @@ function renderMembershipEditor() {
               <button class="soft-action" type="button" data-add-benefit ${state.membershipBenefits.length >= 3 ? "disabled" : ""}><i data-lucide="circle-plus"></i>Vorteilspunkt hinzufügen</button>
             </div>
             <div class="field-grid three membership-price-grid">
-              <div class="field"><label>Mitgliedschaft Preis</label><div class="membership-value"><input type="text" value="0" /><span>€ / Monat</span></div></div>
+              <div class="field"><label>Mitgliedschaft Preis</label><div class="membership-value"><input type="text" value="${escapeHtml(draft.monthlyPrice)}" data-membership-draft-field="monthlyPrice" /><span>€ / Monat</span></div></div>
               <div class="field"><label>Mindestlaufzeit</label><div class="membership-value"><input type="text" value="0" /><span>Monate</span></div></div>
               <div class="field"><label>Kundenrabatt</label><div class="membership-value"><input type="text" value="0" /><span>%</span></div></div>
             </div>
@@ -870,13 +915,13 @@ function renderMembershipEditor() {
               </div>
               <button class="soft-action" type="button" data-open-object-picker><i data-lucide="circle-plus"></i>Weiteres Produkt hinzufügen</button>
             </div>
-            <div class="field membership-cta-field"><label>CTA Button</label><input type="text" placeholder="Text hinzufügen..." /></div>
+            <div class="field membership-cta-field"><label>CTA Button</label><input type="text" value="${escapeHtml(draft.cta)}" placeholder="Text hinzufügen..." data-membership-draft-field="cta" /></div>
           </section>
           <section class="editor-card membership-home-card">
             <h2>Home Sektion</h2>
-            <div class="field"><label>Titel</label><input type="text" placeholder="Titel hinzufügen..." /></div>
-            <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..."></textarea></div>
-            <div class="field"><label>CTA Button</label><input type="text" placeholder="Text hinzufügen..." /></div>
+            <div class="field"><label>Titel</label><input type="text" value="${escapeHtml(draft.homeTitle)}" placeholder="Titel hinzufügen..." data-membership-draft-field="homeTitle" /></div>
+            <div class="field"><label>Beschreibung</label><textarea placeholder="Beschreibung hinzufügen..." data-membership-draft-field="homeDescription">${escapeHtml(draft.homeDescription)}</textarea></div>
+            <div class="field"><label>CTA Button</label><input type="text" value="${escapeHtml(draft.homeCta)}" placeholder="Text hinzufügen..." data-membership-draft-field="homeCta" /></div>
           </section>
         </div>
         <div class="editor-stack">
@@ -888,17 +933,17 @@ function renderMembershipEditor() {
                 <span class="preview-cart"><i data-lucide="shopping-cart"></i><b>4</b></span>
               </div>
               <div class="preview-membership-body">
-                <h3>Mehr Ersparnis als Beitrag:<br />Das Abo, das sich selbst trägt.</h3>
-                <p>Zahlt sich von alleine ab: Spare bei jeder Session und maximiere Deine Ergebnisse. Mindestens 6 Monate für besten Erfolg.</p>
-                <h3>99€/ pro Monat</h3>
-                <ul>
-                  ${memberships[0].benefits.map((benefit) => `<li><i data-lucide="badge-check"></i><span>${benefit}</span></li>`).join("")}
+                <h3 data-membership-preview-field="title">${escapeHtml(draft.title)}</h3>
+                <p data-membership-preview-field="description">${escapeHtml(draft.description)}</p>
+                <h3 data-membership-preview-field="monthlyPrice">${escapeHtml(draft.monthlyPrice)}€/ pro Monat</h3>
+                <ul data-membership-preview-benefits>
+                  ${state.membershipBenefits.map((benefit, index) => `<li ${benefit.trim() ? "" : "hidden"}><i data-lucide="badge-check"></i><span data-membership-preview-benefit-index="${index}">${escapeHtml(benefit)}</span></li>`).join("")}
                 </ul>
                 <h4>Monatliche Auswahl:</h4>
-                <div class="phone-product-row">
-                  ${Array.from({ length: 3 }, () => `<div class="phone-product"><img src="./assets/treatment-card.png" alt="" /><div><strong>Wimpernverlängerung</strong><small>Augen</small><span>129,00€</span><button type="button">Für 0 € einlösen</button></div></div>`).join("")}
+                <div class="phone-product-row" data-membership-preview-products>
+                  ${state.membershipProducts.map((name) => `<div class="phone-product"><img src="./assets/treatment-card.png" alt="" /><div><strong>${escapeHtml(name)}</strong><small>Behandlung</small><span>129,00€</span><button type="button">Für 0 € einlösen</button></div></div>`).join("")}
                 </div>
-                <button class="preview-cta" type="button">Jetzt über 100 € im Jahr sparen</button>
+                <button class="preview-cta" type="button" data-membership-preview-field="cta">${escapeHtml(draft.cta)}</button>
               </div>
               <div class="preview-bottom-nav">
                 <span><i data-lucide="house"></i>Home</span>
@@ -912,9 +957,9 @@ function renderMembershipEditor() {
           <section class="editor-card membership-section-card">
             <h2>Vorschau Sektion</h2>
             <div class="membership-section-preview">
-              <strong>Spare <span>100€+</span> im Jahr</strong>
-              <p>Sichere dir exklusive Vorteile &amp;<br />Rabatte als Mitglied bei uns.</p>
-              <a href="#mitgliedschaft">Zu den Vorteilen <b>›</b></a>
+              <strong data-membership-preview-field="homeTitle">${escapeHtml(draft.homeTitle)}</strong>
+              <p data-membership-preview-field="homeDescription">${escapeHtml(draft.homeDescription)}</p>
+              <a href="#mitgliedschaft"><span data-membership-preview-field="homeCta">${escapeHtml(draft.homeCta)}</span> <b>›</b></a>
             </div>
           </section>
         </div>
@@ -1860,6 +1905,12 @@ function markDirty() {
   }
 }
 
+function updateMembershipPreviewField(field, value) {
+  const target = document.querySelector(`[data-membership-preview-field="${field}"]`);
+  if (!target) return;
+  target.textContent = field === "monthlyPrice" ? `${value}€/ pro Monat` : value;
+}
+
 function bindSearch() {
   const search = document.querySelector("#pageSearch");
   const table = document.querySelector("[data-filterable]");
@@ -1886,6 +1937,22 @@ function bindPageEvents() {
     checkbox.addEventListener("click", (event) => event.stopPropagation());
   });
   bindSearch();
+
+  const goToRewardPage = (page) => {
+    const nextPage = Math.min(Math.max(Number(page), 1), REWARD_PAGE_COUNT);
+    if (!Number.isInteger(nextPage) || nextPage === state.rewardPage) return;
+    state.rewardPage = nextPage;
+    render();
+  };
+  document.querySelectorAll("[data-reward-page]").forEach((button) => {
+    button.addEventListener("click", () => goToRewardPage(button.dataset.rewardPage));
+  });
+  document.querySelector("[data-reward-page-prev]")?.addEventListener("click", () => {
+    goToRewardPage(state.rewardPage - 1);
+  });
+  document.querySelector("[data-reward-page-next]")?.addEventListener("click", () => {
+    goToRewardPage(state.rewardPage + 1);
+  });
 
   const orderSelectionInputs = [...document.querySelectorAll("[data-order-select]")];
   const orderSelectAll = document.querySelector("#orderSelectAll");
@@ -2094,6 +2161,14 @@ function bindPageEvents() {
     editorForm.addEventListener("change", markDirty);
   }
 
+  document.querySelectorAll("[data-membership-draft-field]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const field = input.dataset.membershipDraftField;
+      state.membershipDraft[field] = input.value;
+      updateMembershipPreviewField(field, input.value);
+    });
+  });
+
   document.querySelectorAll("[data-recipient-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       const scope = button.dataset.recipientScope;
@@ -2252,8 +2327,14 @@ function bindPageEvents() {
   }
   document.querySelectorAll("[data-membership-benefit-index]").forEach((input) => {
     input.addEventListener("input", () => {
-      state.membershipBenefits[Number(input.dataset.membershipBenefitIndex)] = input.value;
+      const index = Number(input.dataset.membershipBenefitIndex);
+      state.membershipBenefits[index] = input.value;
       input.closest(".membership-benefit-row")?.classList.toggle("empty", input.value.length === 0);
+      const previewBenefit = document.querySelector(`[data-membership-preview-benefit-index="${index}"]`);
+      if (previewBenefit) {
+        previewBenefit.textContent = input.value;
+        previewBenefit.closest("li").hidden = input.value.trim().length === 0;
+      }
       markDirty();
     });
   });
