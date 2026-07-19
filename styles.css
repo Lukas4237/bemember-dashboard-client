@@ -39,8 +39,9 @@
   --success: #2c9a64;
   --danger: #e5434f;
   --sidebar-width: 230px;
-  --content-width: 853px;
   --content-left: 76px;
+  --content-right: 70px;
+  --content-width: calc(100% - var(--content-left) - var(--content-right));
   --topbar-height: 64px;
   --radius: 8px;
   --shadow-soft: 0 8px 28px rgba(35, 43, 68, 0.06);
@@ -280,12 +281,12 @@ svg {
   top: 0;
   z-index: 15;
   display: grid;
-  grid-template-columns: 713px 130px;
+  grid-template-columns: minmax(0, 1fr) 130px;
   justify-content: start;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   height: var(--topbar-height);
-  padding: 0 17px 0 var(--content-left);
+  padding: 0 var(--content-right) 0 var(--content-left);
   background: var(--blue);
 }
 
@@ -365,7 +366,7 @@ svg {
 
 .page {
   width: var(--content-width);
-  max-width: calc(100% - 40px);
+  max-width: none;
   margin: 0;
   margin-left: var(--content-left);
   padding: 23px 0 54px;
@@ -480,8 +481,7 @@ svg {
 }
 
 .rewards-pagination {
-  width: 853px;
-  max-width: 100%;
+  width: 100%;
 }
 
 .product-page .page-header {
@@ -1276,13 +1276,26 @@ svg {
   resize: vertical;
 }
 
+.order-detail-page,
+.customer-detail-page,
+.reward-editor-page,
+.product-editor-page,
+.membership-editor-page,
+.page-settings,
+.communications-page,
+.communication-editor-page,
+.payouts-page {
+  --wide-growth: max(0px, calc(100vw - 1229px));
+}
+
 .order-detail-page {
   position: relative;
   padding-top: 23px;
 }
 
 .order-detail-page .detail-layout {
-  grid-template-columns: minmax(0, 496px) minmax(0, 346px);
+  grid-template-columns: minmax(0, 496fr) minmax(0, 346fr);
+  width: min(100%, calc(852px + var(--wide-growth)));
 }
 
 .order-detail-page .back-button {
@@ -1472,7 +1485,7 @@ svg {
 
 .order-note-box {
   grid-template-rows: 20px 20px;
-  width: 496px;
+  width: 100%;
   height: 76px;
   gap: 6px;
   margin-top: 10px;
@@ -1545,14 +1558,14 @@ svg {
 }
 
 .customer-detail-layout {
-  grid-template-columns: repeat(2, 277px);
-  width: 565px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, calc(565px + var(--wide-growth)));
   max-width: 100%;
   min-height: 322px;
 }
 
 .customer-detail-layout .detail-card {
-  width: 277px;
+  width: 100%;
   height: 309px;
   padding: 13px 15px;
 }
@@ -1583,7 +1596,7 @@ svg {
 }
 
 .reward-editor-page .editor-toolbar {
-  width: 629px;
+  width: min(100%, calc(629px + var(--wide-growth)));
   max-width: 100%;
   margin-bottom: 10px;
 }
@@ -1645,7 +1658,7 @@ svg {
 }
 
 .product-editor-page .editor-toolbar {
-  width: 629px;
+  width: min(100%, calc(629px + var(--wide-growth)));
   max-width: 100%;
   margin-bottom: 10px;
 }
@@ -1704,14 +1717,14 @@ svg {
 }
 
 .reward-editor-grid {
-  grid-template-columns: 309px 310px;
-  width: 629px;
+  grid-template-columns: minmax(0, 309fr) minmax(0, 310fr);
+  width: min(100%, calc(629px + var(--wide-growth)));
   max-width: 100%;
 }
 
 .product-editor-grid {
-  grid-template-columns: 309px 309px;
-  width: 629px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, calc(629px + var(--wide-growth)));
   max-width: 100%;
 }
 
@@ -1954,7 +1967,7 @@ svg {
 }
 
 .membership-editor-toolbar {
-  width: 853px;
+  width: min(100%, calc(853px + var(--wide-growth)));
   max-width: 100%;
   height: 34px;
   align-items: center;
@@ -1970,9 +1983,9 @@ svg {
 }
 
 .membership-editor-grid {
-  grid-template-columns: 310px 269px;
+  grid-template-columns: minmax(310px, 1fr) 269px;
   gap: 20px;
-  width: 599px;
+  width: min(100%, calc(599px + var(--wide-growth)));
   max-width: 100%;
 }
 
@@ -3856,7 +3869,7 @@ svg {
 }
 
 .page-settings .page-header {
-  width: 800px;
+  width: min(100%, calc(800px + var(--wide-growth)));
   margin-bottom: 24px;
 }
 
@@ -3878,13 +3891,13 @@ svg {
 }
 
 .settings-form {
-  width: 798px;
+  width: min(100%, calc(798px + var(--wide-growth)));
 }
 
 .settings-top-grid,
 .settings-middle-grid {
   display: grid;
-  grid-template-columns: 517px 271px;
+  grid-template-columns: minmax(0, 517fr) minmax(0, 271fr);
   gap: 10px;
 }
 
@@ -3903,7 +3916,7 @@ svg {
   grid-template-rows: 109px 109px;
   column-gap: 15px;
   row-gap: 13px;
-  width: 517px;
+  width: 100%;
   height: 256px;
   padding: 10px 0 10px 11px;
 }
@@ -4214,14 +4227,14 @@ svg {
 
 .legal-grid {
   display: grid;
-  grid-template-columns: repeat(4, 190px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  width: 796px;
+  width: min(100%, calc(796px + var(--wide-growth)));
   margin-top: 11px;
 }
 
 .legal-grid .legal-card {
-  width: 190px;
+  width: 100%;
   height: 428px;
   padding: 10px;
 }
@@ -4239,7 +4252,7 @@ svg {
 }
 
 .legal-field textarea {
-  width: 170px;
+  width: 100%;
   height: 362px;
   padding: 9px;
   border: 1px solid var(--line);
@@ -4256,8 +4269,13 @@ svg {
 
 .split-communications {
   display: grid;
-  grid-template-columns: repeat(2, 415px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 23px;
+  width: min(100%, calc(853px + var(--wide-growth)));
+}
+
+.communication-column {
+  min-width: 0;
 }
 
 .communication-toolbar,
@@ -4298,7 +4316,7 @@ svg {
 }
 
 .communication-table-shell {
-  width: 415px;
+  width: 100%;
   height: 364px;
 }
 
@@ -4322,12 +4340,12 @@ svg {
 }
 
 .communication-editor-page .page-header {
-  width: 853px;
+  width: min(100%, calc(853px + var(--wide-growth)));
 }
 
 .communication-editor-toolbar,
 .communication-editor-card {
-  width: 415px;
+  width: min(100%, calc(415px + var(--wide-growth)));
 }
 
 .communication-publish {
@@ -4466,7 +4484,7 @@ svg {
 
 .media-table-shell {
   position: relative;
-  width: 853px;
+  width: 100%;
   height: 443px;
 }
 
@@ -4595,7 +4613,7 @@ svg {
 }
 
 .payout-content {
-  width: 466px;
+  width: min(100%, calc(466px + var(--wide-growth)));
   max-width: 100%;
   transform: scale(1.12);
   transform-origin: top left;
@@ -4608,13 +4626,13 @@ svg {
 .payout-panel {
   display: grid;
   gap: 10px;
-  width: 466px;
+  width: 100%;
   max-width: 100%;
 }
 
 .payout-summary {
   display: grid;
-  grid-template-columns: repeat(4, 109px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
 }
@@ -4650,7 +4668,7 @@ svg {
 .payout-bank-card {
   display: flex;
   align-items: flex-start;
-  width: 466px;
+  width: 100%;
   max-width: 100%;
   min-height: 50px;
   padding: 7px 7px 7px 10px;
@@ -4663,7 +4681,8 @@ svg {
   display: flex;
   align-items: center;
   gap: 9px;
-  width: 326px;
+  flex: 1 1 auto;
+  width: auto;
   min-width: 0;
   height: 34px;
 }
@@ -4699,6 +4718,7 @@ svg {
 }
 
 .payout-bank-card button {
+  flex: 0 0 123px;
   width: 123px;
   height: 26px;
   padding: 0 10px;
@@ -4712,7 +4732,7 @@ svg {
 }
 
 .payout-history {
-  width: 466px;
+  width: 100%;
   max-width: 100%;
   height: 138px;
   overflow: hidden;
@@ -4722,7 +4742,7 @@ svg {
 }
 
 .payout-history table {
-  width: 466px;
+  width: 100%;
   max-width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
@@ -4730,11 +4750,11 @@ svg {
 
 .payout-history col:nth-child(1),
 .payout-history col:nth-child(2) {
-  width: 150px;
+  width: 32.1888%;
 }
 
 .payout-history col:nth-child(3) {
-  width: 166px;
+  width: 35.6224%;
 }
 
 .payout-history th,
@@ -5330,14 +5350,736 @@ svg {
   background: rgba(20, 25, 35, 0.38);
 }
 
+/* Dashboard readability pass.
+   Real dashboard text authored at 9-10px now renders at 12px; the smallest
+   7-8px dashboard annotations render at 11px. Matching control geometry keeps
+   both tiers unclipped. The intentionally miniaturized membership phone
+   preview keeps its original 4-8px art-directed type. */
+.button,
+.status,
+.membership-benefit-row,
+.object-picker-item small,
+.date-range-presets > span,
+.calendar-day {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.figma-pagination,
+.search-field input,
+.button.compact,
+.back-button,
+.bulk-points-field input,
+.analytics-filter,
+.activity-item strong,
+.activity-item span,
+.order-detail-toolbar > .select-field,
+.order-detail-toolbar > .custom-select.select-field .custom-select__button,
+.order-detail-toolbar > .custom-select.select-field .custom-select__option,
+.order-payment-chip,
+.select-field,
+.product-category-card .custom-select__button,
+.product-category-card .custom-select__option,
+.package-fields-label label,
+.product-tags-card h2,
+.membership-benefit-row input,
+.membership-value,
+.membership-products-field .list-editor-item,
+.value-suffix,
+.custom-select__button,
+.custom-select__option,
+.reward-dates-card .field input,
+.media-library-count,
+.media-library-search input,
+.media-library-add,
+.media-upload-button,
+.media-upload-zone > span,
+.media-library-item,
+.media-library-item small,
+.recipient-toggle button,
+.recipient-selection-count,
+.recipient-search input,
+.recipient-customer-row,
+.reward-product-row,
+.reward-discount-row,
+.reward-repeat-row,
+.reward-selected-object span,
+.reward-discount-input input,
+.reward-repeat-row select,
+.field label,
+.field-label,
+.field input,
+.field select,
+.field textarea,
+.checkbox-row,
+.product-pricing-card .field-help,
+.media-picker-image-count,
+.tag,
+.list-editor-item,
+.soft-action,
+.settings-asset-field label,
+.settings-control-field label,
+.legal-field label,
+.settings-tags-card .field-label,
+.settings-control-field input,
+.settings-control-field select,
+.color-control input:last-child,
+.tag-entry input,
+.settings-tags-card .tag,
+.settings-points-grid .field-help,
+.legal-field textarea,
+.communication-add,
+.communication-publish,
+.communication-field label,
+.communication-field input,
+.communication-field textarea,
+.communication-recipient-field > label,
+.media-add,
+.media-filename span,
+.media-filename small,
+.payout-bank-card button,
+.payout-history th,
+.payout-history td,
+.profile-logout,
+.calendar-weekdays span {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.analytics-filter,
+.activity-item span,
+.order-payment-chip,
+.product-pricing-card .field-help,
+.recipient-search input,
+.media-picker-image-count,
+.settings-tags-card .tag,
+.settings-points-grid .field-help,
+.communication-add,
+.communication-publish {
+  font-size: 11px;
+  line-height: 15px;
+}
+
+/* Global compact controls grow with their labels instead of clipping them. */
+.search-field {
+  height: 30px;
+}
+
+.button {
+  min-height: 34px;
+}
+
+.button.compact {
+  min-height: 28px;
+}
+
+.back-button,
+.order-detail-page .back-button,
+.customer-detail-page .back-button,
+.reward-editor-page .back-button,
+.product-editor-page .back-button,
+.membership-editor-page .back-button {
+  width: auto;
+  min-width: 68px;
+  height: 24px;
+  padding-inline: 9px;
+}
+
+.bulk-points-field,
+.bulk-points-field input {
+  height: 28px;
+}
+
+.analytics-filter {
+  height: 26px;
+  padding-inline: 9px;
+}
+
+.activity-item {
+  min-height: 48px;
+}
+
+.metric-card {
+  min-height: 62px;
+  height: auto;
+}
+
+.metric-card span {
+  line-height: 15px;
+}
+
+.list-add-button {
+  width: auto !important;
+  min-width: 136px;
+}
+
+.select-field {
+  height: 30px;
+}
+
+.custom-select__option {
+  height: 32px;
+  line-height: 32px;
+}
+
+.field label,
+.field-label,
+.settings-asset-field label,
+.settings-control-field label,
+.legal-field label,
+.settings-tags-card .field-label,
+.communication-field label,
+.communication-recipient-field > label {
+  line-height: 15px;
+}
+
+.field input,
+.field select,
+.settings-control-field input,
+.settings-control-field select {
+  height: 30px;
+}
+
+.field textarea {
+  min-height: 82px;
+  line-height: 15px;
+}
+
+.tag,
+.settings-tags-card .tag {
+  min-height: 24px;
+  height: 24px;
+}
+
+.soft-action {
+  min-height: 30px;
+}
+
+.figma-pagination button,
+.figma-pagination span {
+  min-width: 18px;
+  height: 18px;
+}
+
+/* Order detail micro status controls. */
+.order-detail-page .order-detail-toolbar,
+.order-detail-heading {
+  min-height: 62px;
+  height: 62px;
+}
+
+.order-detail-toolbar > .select-field {
+  width: 108px;
+  height: 26px;
+}
+
+.order-detail-toolbar > .custom-select.select-field .custom-select__option {
+  height: 26px;
+  line-height: 26px;
+}
+
+.order-id-row {
+  min-height: 20px;
+  height: 20px;
+}
+
+.order-payment-chip {
+  width: 46px;
+  height: 18px;
+  line-height: 15px;
+}
+
+/* Product and reward editors: larger controls with content-driven cards. */
+.reward-editor-page .editor-status,
+.product-editor-page .editor-status {
+  height: 28px;
+}
+
+.reward-editor-page [data-delete-object],
+.reward-editor-page #editorSave,
+.product-editor-page [data-delete-object],
+.product-editor-page #editorSave {
+  min-height: 28px;
+  height: 28px;
+}
+
+.product-category-card {
+  height: auto;
+  min-height: 69px;
+}
+
+.product-category-card .field,
+.product-category-card .field select,
+.product-category-card .custom-select,
+.product-category-card .custom-select__menu {
+  width: 108px !important;
+  min-width: 108px;
+}
+
+.product-category-card .field select,
+.product-category-card .custom-select,
+.product-category-card .custom-select__option {
+  height: 28px !important;
+}
+
+.product-category-card .custom-select__option {
+  line-height: 28px;
+}
+
+.product-editor-grid .field input,
+.product-editor-grid .field select,
+.reward-editor-grid .field input,
+.reward-editor-grid .field select,
+.reward-repeat-row select,
+.reward-discount-input,
+.membership-editor-grid .field input,
+.membership-editor-grid .field select {
+  height: 28px;
+}
+
+.product-editor-grid .field textarea,
+.reward-editor-grid .field textarea,
+.membership-editor-grid .field textarea {
+  min-height: 82px;
+  height: 82px;
+}
+
+.package-fields-label label,
+.product-tags-card h2 {
+  line-height: 15px;
+}
+
+.package-products-field .list-editor-items,
+.package-products-field .soft-action {
+  width: 100%;
+}
+
+.package-products-field .soft-action {
+  min-height: 28px;
+  height: 28px;
+}
+
+.product-content-card {
+  min-height: 280px;
+}
+
+.product-content-card.has-package-fields {
+  min-height: 410px;
+}
+
+.product-pricing-card {
+  min-height: 238px;
+}
+
+.product-standard-pricing {
+  min-height: 216px;
+}
+
+.product-pricing-card .field-help,
+.settings-points-grid .field-help {
+  width: 100%;
+  max-width: 100%;
+  gap: 6px;
+  line-height: 15px;
+}
+
+.product-pricing-card .field-help svg,
+.settings-points-grid .field-help svg {
+  width: 11px;
+  height: 11px;
+  margin-top: 2px;
+  transform: none;
+}
+
+.product-pricing-card .field-help span {
+  width: auto;
+  flex: 1 1 auto;
+}
+
+.product-tags-card {
+  min-height: 165px;
+}
+
+.reward-product-row .button,
+.reward-discount-input,
+.reward-repeat-row select {
+  min-height: 28px;
+}
+
+.reward-product-row .button {
+  width: 120px;
+  height: 28px;
+}
+
+.reward-basic-card,
+.reward-dates-card,
+.reward-recipient-card,
+.reward-message-card {
+  height: auto;
+  overflow: visible;
+}
+
+.reward-basic-card {
+  min-height: 190px;
+}
+
+.reward-dates-card {
+  min-height: 210px;
+}
+
+.reward-recipient-card {
+  min-height: 94px;
+}
+
+.reward-recipient-card.is-selected {
+  min-height: 390px;
+}
+
+.reward-message-card {
+  min-height: 225px;
+}
+
+.recipient-toggle {
+  height: 36px;
+}
+
+.recipient-toggle button {
+  height: 30px;
+}
+
+.recipient-customer-panel {
+  grid-template-rows: 15px 283px;
+  height: 303px;
+}
+
+.recipient-customer-list {
+  grid-auto-rows: 36px;
+  height: 283px;
+}
+
+.recipient-search-row,
+.recipient-customer-row {
+  height: 36px;
+}
+
+.recipient-search {
+  height: 29px;
+}
+
+.recipient-search input {
+  height: 27px;
+}
+
+/* Membership editor acceptance: readable values without suffix overflow. */
+.membership-editor-grid {
+  grid-template-columns: minmax(431px, 1fr) 269px;
+  width: min(100%, calc(720px + var(--wide-growth)));
+}
+
+.membership-home-card {
+  min-height: 270px;
+}
+
+.membership-benefit-row.empty {
+  min-height: 28px;
+  height: 28px;
+}
+
+.membership-benefit-row input {
+  height: 24px !important;
+}
+
+.membership-benefits-field .soft-action {
+  min-height: 28px;
+  height: 28px;
+}
+
+.membership-value,
+.value-suffix {
+  height: 28px;
+}
+
+.membership-value input,
+.value-suffix input,
+.value-suffix.points input {
+  height: 24px !important;
+}
+
+.membership-price-grid .field:nth-child(1) .membership-value {
+  width: 96px;
+}
+
+.membership-price-grid .field:nth-child(2) .membership-value {
+  width: 90px;
+}
+
+.membership-price-grid .field:nth-child(3) .membership-value {
+  width: 50px;
+}
+
+.membership-price-grid.field-grid.three {
+  grid-template-columns: minmax(130px, 1.2fr) minmax(110px, 1fr) minmax(92px, 0.8fr);
+  width: 100%;
+  gap: 12px;
+}
+
+.membership-price-grid .field {
+  grid-template-rows: 15px 28px;
+  align-content: start;
+  gap: 6px;
+}
+
+.membership-price-grid .field label {
+  min-height: 15px;
+  white-space: nowrap;
+}
+
+.membership-benefits-field,
+.membership-products-field,
+.membership-cta-field,
+.membership-products-field .list-editor-items,
+.membership-products-field .soft-action {
+  width: 100%;
+}
+
+.membership-products-field .soft-action {
+  min-height: 30px;
+  height: 30px;
+}
+
+/* Media library and table actions. */
+.media-library-toolbar {
+  min-height: 30px;
+}
+
+.media-library-search {
+  height: 30px;
+}
+
+.media-library-add,
+.media-upload-button {
+  height: 28px;
+}
+
+.media-library-add {
+  width: 122px;
+}
+
+.media-upload-button {
+  width: 138px;
+}
+
+.modal.media-library-modal {
+  height: min(545px, calc(100dvh - 60px));
+}
+
+.media-library-modal.has-media-selection {
+  height: min(514px, calc(100dvh - 60px));
+}
+
+.media-add {
+  width: 132px;
+  min-height: 34px;
+  height: 34px;
+}
+
+/* Settings cards expand with two-line 11px helper text. */
+.settings-top-grid,
+.settings-middle-grid,
+.settings-branding-card,
+.settings-side-stack {
+  height: auto;
+}
+
+.settings-top-grid {
+  min-height: 262px;
+}
+
+.settings-branding-card {
+  grid-template-rows: 112px 112px;
+  min-height: 262px;
+}
+
+.settings-asset-field {
+  grid-template-rows: 15px 92px;
+  height: 112px;
+}
+
+.settings-brand-controls {
+  grid-template-rows: repeat(2, 55px);
+}
+
+.settings-side-stack {
+  grid-template-rows: minmax(124px, auto) minmax(150px, auto);
+}
+
+.settings-validity-card,
+.settings-tags-card,
+.settings-points-card,
+.settings-contact-card {
+  height: auto;
+}
+
+.settings-validity-card {
+  grid-template-rows: repeat(2, 47px);
+  min-height: 124px;
+}
+
+.settings-validity-card .settings-control-field input,
+.settings-validity-card .settings-control-field select,
+.settings-contact-card .settings-control-field input,
+.settings-points-grid .settings-control-field input,
+.tag-entry input,
+.tag-entry .button {
+  height: 28px;
+}
+
+.settings-validity-card .settings-control-field:first-child input {
+  width: 72px;
+}
+
+.settings-validity-card .settings-control-field:last-child select,
+.settings-validity-card .settings-control-field:last-child .custom-select {
+  width: 96px;
+}
+
+.settings-points-grid .settings-control-field input {
+  width: 78px;
+}
+
+.settings-tags-card {
+  min-height: 150px;
+}
+
+.settings-points-card,
+.settings-contact-card {
+  min-height: 144px;
+}
+
+.settings-contact-card {
+  grid-template-rows: repeat(2, 55px);
+}
+
+.legal-field {
+  grid-template-rows: 15px 362px;
+}
+
+.legal-grid .legal-card {
+  height: 431px;
+}
+
+/* Communications, payouts, profile and date controls. */
+.communication-toolbar,
+.communication-editor-toolbar {
+  height: 30px;
+}
+
+.communication-add,
+.communication-publish {
+  min-height: 30px;
+  height: 30px;
+}
+
+.communication-publish,
+.message-editor-page .communication-publish {
+  width: auto;
+  min-width: 166px;
+}
+
+.communication-field input {
+  height: 28px;
+}
+
+.communication-field textarea {
+  height: 84px;
+  line-height: 15px;
+}
+
+.communication-title-field {
+  height: 47px;
+}
+
+.communication-description-field {
+  height: 109px;
+}
+
+.communication-selection-field {
+  height: 50px;
+}
+
+.communication-selection-field .button {
+  width: auto;
+  min-width: 105px;
+  height: 28px;
+  min-height: 28px;
+}
+
+.communication-recipient-field > label {
+  height: 15px;
+  margin-bottom: 8px;
+}
+
+.communication-editor-card,
+.message-editor-page .communication-editor-card,
+.message-editor-page .communication-editor-card.has-selected-recipients {
+  height: auto;
+}
+
+.communication-editor-card {
+  min-height: 285px;
+}
+
+.message-editor-page .communication-editor-card {
+  min-height: 410px;
+}
+
+.message-editor-page .communication-editor-card.has-selected-recipients {
+  min-height: 690px;
+}
+
+.payout-bank-card button {
+  width: auto;
+  min-width: 155px;
+  min-height: 34px;
+  height: 34px;
+}
+
+.payout-content {
+  width: min(100%, calc(560px + var(--wide-growth)));
+}
+
+.payout-bank-meta > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.payout-bank-meta strong,
+.payout-bank-meta small {
+  width: auto;
+}
+
+.payout-history {
+  height: 170px;
+}
+
+.payout-history th,
+.payout-history td {
+  height: 28px;
+}
+
+.payout-history th {
+  height: 30px;
+}
+
+.calendar-weekdays span {
+  height: 26px;
+}
+
 @media (max-width: 1050px) {
   :root {
     --sidebar-width: 220px;
     --content-left: 16px;
-  }
-
-  .page {
-    width: calc(100% - 32px);
+    --content-right: 16px;
   }
 
   .topbar {
@@ -5354,6 +6096,11 @@ svg {
 }
 
 @media (max-width: 820px) {
+  :root {
+    --content-left: 12px;
+    --content-right: 12px;
+  }
+
   .dashboard-shell {
     display: block;
   }
@@ -5373,7 +6120,7 @@ svg {
   .topbar {
     grid-template-columns: 37px minmax(0, 1fr) auto;
     gap: 8px;
-    padding: 0 12px;
+    padding: 0 var(--content-right) 0 var(--content-left);
   }
 
   .icon-button.mobile-menu {
@@ -5392,7 +6139,7 @@ svg {
 
   .page,
   .page.page-settings {
-    width: calc(100% - 24px);
+    width: var(--content-width);
     padding-top: 24px;
     transform: none;
   }
@@ -5491,5 +6238,227 @@ svg {
 
   .summary-line span:nth-child(2) {
     display: none;
+  }
+}
+
+/* 2026-07-19 local interaction/layout corrections. */
+
+/* The message editor uses content-sized rows so the 12px labels cannot spill
+   into the following recipient controls. */
+.communication-editor-toolbar,
+.communication-editor-card {
+  max-width: 640px;
+}
+
+.communication-editor-card {
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 14px;
+}
+
+.communication-title-field,
+.communication-description-field,
+.communication-image-field,
+.communication-selection-field {
+  height: auto;
+}
+
+.communication-selection-field {
+  width: 100%;
+}
+
+.communication-selection-field .button {
+  justify-self: start;
+  width: 187px;
+  max-width: 100%;
+}
+
+.communication-selection-field .button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.communication-recipient-field {
+  width: max-content;
+  max-width: 100%;
+}
+
+.communication-recipient-field.is-selected {
+  width: min(100%, 309px);
+}
+
+.message-editor-page .recipient-toggle {
+  width: max-content;
+  max-width: 100%;
+}
+
+.message-editor-page .recipient-toggle button {
+  width: auto;
+  min-width: 100px;
+  padding-inline: 14px;
+}
+
+.message-editor-page .recipient-toggle button + button {
+  width: auto;
+  min-width: 145px;
+}
+
+.communication-editor-card {
+  min-height: 292px;
+}
+
+.message-editor-page .communication-editor-card {
+  min-height: 430px;
+}
+
+.message-editor-page .communication-editor-card.has-selected-recipients {
+  min-height: 740px;
+}
+
+/* Keep all three order metadata lines on distinct, evenly spaced baselines. */
+.order-detail-page .back-button {
+  margin-bottom: 10px;
+  line-height: 16px;
+}
+
+.order-detail-page .order-detail-toolbar,
+.order-detail-heading {
+  min-height: 72px;
+  height: 72px;
+}
+
+.order-detail-page .order-detail-toolbar {
+  margin-bottom: 12px;
+}
+
+.order-detail-heading {
+  display: grid;
+  grid-template-rows: 20px 46px;
+  row-gap: 6px;
+}
+
+.order-id-row {
+  min-height: 20px;
+  height: 20px;
+  gap: 4px;
+}
+
+.order-number,
+.order-paid-at,
+.order-timestamp {
+  line-height: 20px;
+}
+
+.order-metadata {
+  display: grid;
+  grid-template-rows: repeat(2, 20px);
+  gap: 6px;
+  width: max-content;
+  height: 46px;
+  margin: 0 0 0 1px;
+}
+
+.order-timestamp {
+  min-height: 20px;
+}
+
+/* Enlarge the membership preview while retaining room for the editable form. */
+.membership-editor-grid {
+  grid-template-columns: minmax(431px, 1fr) 320px;
+  width: min(100%, calc(771px + var(--wide-growth)));
+}
+
+.membership-preview-card,
+.membership-section-card {
+  width: 320px;
+}
+
+.membership-preview-card {
+  min-height: 714px;
+  height: 714px;
+}
+
+.membership-phone-preview {
+  transform: scale(1.18);
+  transform-origin: top left;
+}
+
+.membership-section-card {
+  min-height: 276px;
+  height: auto;
+}
+
+.membership-section-preview {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 142px;
+  height: auto;
+  padding: 22px 20px;
+}
+
+.membership-price-grid .field:nth-child(1) .membership-value {
+  width: 116px;
+}
+
+.membership-price-grid .field:nth-child(1) .membership-value input {
+  width: 24px !important;
+  min-width: 24px;
+}
+
+/* Preserve the gift artwork's 290:180 source ratio as its column grows. */
+.reward-preview-card {
+  height: auto;
+  min-height: 229px;
+}
+
+.reward-preview-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 290 / 180;
+  object-fit: contain;
+}
+
+/* The Figma drawer begins above the viewport, so pin its other edge instead
+   of using a height that leaves a gap on taller windows. */
+.profile-drawer {
+  bottom: 0;
+  height: auto;
+}
+
+/* Page numbers are real buttons; keep the Figma appearance and expose focus. */
+.figma-pagination button {
+  border-radius: 3px;
+}
+
+.figma-pagination button:not(:disabled) {
+  cursor: pointer;
+}
+
+.figma-pagination button.is-active,
+.figma-pagination button[aria-current="page"] {
+  background: #f4f3f3;
+  color: var(--ink);
+}
+
+.figma-pagination button:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.figma-pagination button:focus-visible {
+  outline: 2px solid #6cade0;
+  outline-offset: 2px;
+}
+
+@media (max-width: 820px) {
+  .membership-editor-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .membership-preview-card,
+  .membership-section-card {
+    width: min(100%, 320px);
   }
 }
