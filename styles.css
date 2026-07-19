@@ -448,7 +448,7 @@ svg {
   gap: 14px;
   height: 29px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -591,7 +591,7 @@ svg {
   border: 0;
   outline: 0;
   background: transparent;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .button {
@@ -668,7 +668,7 @@ svg {
 .button.compact {
   min-height: 25px;
   padding-inline: 11px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .button.icon-end svg {
@@ -708,7 +708,7 @@ svg {
   border-radius: 4px;
   background: #fff;
   color: var(--ink);
-  font-size: 9px;
+  font-size: 11px;
   vertical-align: top;
   box-shadow: 0 2px 2.6px rgba(0, 0, 0, 0.08);
 }
@@ -945,7 +945,7 @@ svg {
   outline: 0;
   background: #fff;
   color: var(--ink);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   appearance: textfield;
 }
@@ -1157,7 +1157,7 @@ svg {
 }
 
 .activity-item strong {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -1318,14 +1318,14 @@ svg {
   width: 99px;
   height: 20px;
   border-radius: 5px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .order-detail-toolbar > .custom-select.select-field .custom-select__button {
   justify-content: flex-start;
   padding: 0 33px 0 24px;
   border-radius: 5px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .order-detail-toolbar > .custom-select.select-field .custom-select__button svg {
@@ -1343,7 +1343,7 @@ svg {
 .order-detail-toolbar > .custom-select.select-field .custom-select__option {
   height: 20px;
   padding: 0 10px;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 20px;
   text-align: center;
 }
@@ -1706,7 +1706,7 @@ svg {
   height: 25px;
   padding: 0 25px 0 10px;
   background-color: #fff;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .editor-grid {
@@ -1774,7 +1774,7 @@ svg {
 .product-category-card .custom-select__button {
   padding: 0 24px 0 11px;
   color: #111;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -1792,7 +1792,7 @@ svg {
   min-width: 92px;
   height: 20px;
   padding: 0 18px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 20px;
   text-align: left;
@@ -1821,7 +1821,7 @@ svg {
 .package-fields-label label {
   display: block;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 12px;
 }
@@ -1853,7 +1853,7 @@ svg {
 .product-tags-card h2 {
   margin: 0 0 10px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -2088,7 +2088,7 @@ svg {
   padding: 0 !important;
   border: 0 !important;
   outline: 0;
-  font-size: 9px;
+  font-size: 11px;
   color: var(--ink);
   background: transparent;
 }
@@ -2140,7 +2140,7 @@ svg {
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   color: var(--ink);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .membership-value input {
@@ -2179,7 +2179,7 @@ svg {
   height: 30px;
   grid-template-columns: 30px minmax(0, 1fr) 16px;
   gap: 9px;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.35;
 }
 
@@ -2449,7 +2449,7 @@ svg {
   border-radius: 4px;
   background: #fff;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .value-suffix input {
@@ -2508,7 +2508,7 @@ svg {
   background: #fff;
   color: #424242;
   font: inherit;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1;
   text-align: left;
@@ -2562,7 +2562,7 @@ svg {
   background: #fff;
   color: #111;
   font: inherit;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 29px;
   text-align: left;
@@ -2614,7 +2614,7 @@ svg {
 .reward-dates-card .field input {
   padding-right: 6px;
   padding-left: 6px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .reward-repeat-row {
@@ -2704,7 +2704,7 @@ svg {
 
 .media-library-count {
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -2733,7 +2733,7 @@ svg {
   border-radius: 7px;
   outline: 0;
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .media-library-search input::placeholder {
@@ -2752,7 +2752,7 @@ svg {
   border-radius: 7px;
   background: var(--pink);
   color: #fff;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -2862,12 +2862,12 @@ svg {
   border-radius: 7px;
   background: #fff;
   color: #7d7d7d;
-  font-size: 9px;
+  font-size: 11px;
   cursor: pointer;
 }
 
 .media-upload-zone > span {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .media-library-subtitle {
@@ -2896,7 +2896,7 @@ svg {
   border-radius: 5px;
   background: transparent;
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
   text-align: center;
 }
 
@@ -2918,7 +2918,7 @@ svg {
 }
 
 .media-library-item small {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .media-library-item:hover img,
@@ -3124,7 +3124,7 @@ svg {
   background: transparent;
   color: #858585;
   font: inherit;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 12px;
   white-space: nowrap;
@@ -3157,7 +3157,7 @@ svg {
 
 .recipient-selection-count {
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 12px;
 }
@@ -3220,7 +3220,7 @@ svg {
   height: 32px;
   padding: 0 7px;
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 12px;
 }
@@ -3272,7 +3272,7 @@ svg {
   align-items: center;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .reward-product-row {
@@ -3314,7 +3314,7 @@ svg {
 .reward-selected-object span {
   min-width: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: normal;
 }
@@ -3361,7 +3361,7 @@ svg {
   padding: 0;
   border: 0;
   outline: 0;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .reward-discount-input input::-webkit-inner-spin-button {
@@ -3425,7 +3425,7 @@ svg {
   border: 1px solid var(--line-strong);
   border-radius: 5px;
   background: #fff;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .reward-message-card .field {
@@ -3492,7 +3492,7 @@ svg {
 .field label,
 .field-label {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .field input,
@@ -3500,7 +3500,7 @@ svg {
   width: 100%;
   height: 25px;
   padding: 0 9px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .field textarea {
@@ -3508,7 +3508,7 @@ svg {
   min-height: 74px;
   padding: 9px;
   resize: vertical;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .field input::placeholder,
@@ -3540,7 +3540,7 @@ svg {
   gap: 7px;
   margin: 8px 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .checkbox-row input {
@@ -3714,7 +3714,7 @@ svg {
   border-radius: 999px;
   background: #fff;
   color: var(--ink);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tag.selected {
@@ -3749,7 +3749,7 @@ svg {
   gap: 9px;
   min-height: 36px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .list-editor-item img {
@@ -3784,7 +3784,7 @@ svg {
   border-radius: 5px;
   background: rgba(251, 113, 133, 0.16);
   color: var(--pink);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .soft-action svg {
@@ -3934,7 +3934,7 @@ svg {
 .legal-field label,
 .settings-tags-card .field-label {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 12px;
 }
 
@@ -3977,7 +3977,7 @@ svg {
   border: 1px solid var(--line-strong);
   border-radius: 6px;
   background: #fff;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .settings-brand-controls .settings-control-field,
@@ -4089,7 +4089,7 @@ svg {
   padding: 0 4px;
   border: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .settings-side-stack {
@@ -4149,7 +4149,7 @@ svg {
   padding: 0 8px;
   border: 1px solid var(--line-strong);
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tag-entry .button {
@@ -4259,7 +4259,7 @@ svg {
   border-radius: 5px;
   resize: none;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .communications-page .page-header,
@@ -4380,7 +4380,7 @@ svg {
 
 .communication-field label {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 12px;
 }
 
@@ -4392,7 +4392,7 @@ svg {
   background: #fff;
   color: var(--ink);
   font: inherit;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .communication-field input {
@@ -4450,7 +4450,7 @@ svg {
   height: 9px;
   margin-bottom: 10px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 9px;
 }
 
@@ -4474,7 +4474,7 @@ svg {
   height: 32px;
   margin-top: 0;
   padding: 0 12px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .media-add svg {
@@ -4595,13 +4595,13 @@ svg {
 }
 
 .media-filename span {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .media-filename small {
   margin-top: 1px;
   color: var(--ink);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .media-help {
@@ -4726,7 +4726,7 @@ svg {
   border-radius: 7px;
   background: #f2f2f2;
   color: #8b8b8b;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   opacity: 1;
 }
@@ -4763,7 +4763,7 @@ svg {
   padding: 0 0 0 10px;
   border-bottom: 0.5px solid var(--line-strong);
   color: #424242;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   line-height: normal;
   text-align: left;
@@ -5075,7 +5075,7 @@ svg {
   border: 0;
   background: transparent;
   color: var(--pink);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -5243,7 +5243,7 @@ svg {
   place-items: center;
   height: 24px;
   color: #7d7d7d;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -5351,8 +5351,8 @@ svg {
 }
 
 /* Dashboard readability pass.
-   Real dashboard text authored at 9-10px now renders at 12px; the smallest
-   7-8px dashboard annotations render at 11px. Matching control geometry keeps
+   Dashboard text authored at 10px renders at 12px; the 9px tier and the
+   smallest 7-8px annotations render at 11px. Matching control geometry keeps
    both tiers unclipped. The intentionally miniaturized membership phone
    preview keeps its original 4-8px art-directed type. */
 .button,
@@ -5442,7 +5442,7 @@ svg {
 .payout-history td,
 .profile-logout,
 .calendar-weekdays span {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 16px;
 }
 
